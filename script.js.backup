@@ -1,48 +1,21 @@
-// 画像読み込み処理（高速化版）
-let objectUrls = new Map(); // URLの管理用
-
+// 画像読み込み処理
 function loadImage(input, canvasId, callback) {
   const file = input.files[0];
   if (!file) return;
-  
-  // 既存のURLがあれば解放
-  if (objectUrls.has(canvasId)) {
-    URL.revokeObjectURL(objectUrls.get(canvasId));
-  }
-  
   const img = new Image();
-  const objectUrl = URL.createObjectURL(file); // 高速化のポイント
-  objectUrls.set(canvasId, objectUrl);
-  
-  img.onload = () => {
-    const canvas = document.getElementById(canvasId);
-    
-    // オプション: 大きすぎる画像は制限（必要に応じてコメントアウト）
-    const MAX_SIZE = 4096;
-    let width = img.width;
-    let height = img.height;
-    
-    if (width > MAX_SIZE || height > MAX_SIZE) {
-      const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
-      width = Math.floor(width * scale);
-      height = Math.floor(height * scale);
-    }
-    
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, width, height);
-    
-    if (callback) callback();
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    img.onload = () => {
+      const canvas = document.getElementById(canvasId);
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      if (callback) callback();
+    };
+    img.src = e.target.result;
   };
-  
-  img.onerror = () => {
-    alert("画像の読み込みに失敗しました。");
-    URL.revokeObjectURL(objectUrl);
-    objectUrls.delete(canvasId);
-  };
-  
-  img.src = objectUrl;
+  reader.readAsDataURL(file);
 }
 
 // 画像比較処理
@@ -111,13 +84,6 @@ function clearImage(inputId, canvasId) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   canvas.width = 0;
   canvas.height = 0;
-  
-  // メモリ解放
-  if (objectUrls.has(canvasId)) {
-    URL.revokeObjectURL(objectUrls.get(canvasId));
-    objectUrls.delete(canvasId);
-  }
-  
   document.getElementById("diffRate").textContent = "";
   const diffCanvas = document.getElementById("diffCanvas");
   const diffCtx = diffCanvas.getContext("2d");
@@ -136,11 +102,3 @@ window.onload = () => {
 
   document.getElementById("compareButton").addEventListener("click", compareImages);
 };
-
-// ページ離脱時のメモリ解放
-window.addEventListener('beforeunload', () => {
-  objectUrls.forEach((url) => {
-    URL.revokeObjectURL(url);
-  });
-  objectUrls.clear();
-});
