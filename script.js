@@ -124,15 +124,92 @@ function clearImage(inputId, canvasId) {
   diffCtx.clearRect(0, 0, diffCanvas.width, diffCanvas.height);
 }
 
+// ドラッグ&ドロップ処理を追加
+function setupDropZone(dropZoneId, inputId, canvasId) {
+  const dropZone = document.getElementById(dropZoneId);
+  const input = document.getElementById(inputId);
+  
+  // ドラッグオーバー時の処理
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  
+  // ドラッグリーブ時の処理
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('dragover');
+  });
+  
+  // ドロップ時の処理
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0 && files[0].type.startsWith('image/')) {
+      // FileListをinput要素に設定できないため、直接loadImageを呼ぶ
+      const file = files[0];
+      handleFileSelect(file, canvasId);
+    } else if (files.length > 0) {
+      alert('画像ファイルを選択してください。');
+    }
+  });
+  
+  // ファイル選択時の処理（既存の機能と統合）
+  input.addEventListener('change', () => {
+    if (input.files.length > 0) {
+      handleFileSelect(input.files[0], canvasId);
+    }
+  });
+}
+
+// ファイル選択処理の共通化
+function handleFileSelect(file, canvasId) {
+  if (!file) return;
+  
+  // 既存のURLがあれば解放
+  if (objectUrls.has(canvasId)) {
+    URL.revokeObjectURL(objectUrls.get(canvasId));
+  }
+  
+  const img = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  objectUrls.set(canvasId, objectUrl);
+  
+  img.onload = () => {
+    const canvas = document.getElementById(canvasId);
+    
+    // オプション: 大きすぎる画像は制限（必要に応じてコメントアウト）
+    const MAX_SIZE = 4096;
+    let width = img.width;
+    let height = img.height;
+    
+    if (width > MAX_SIZE || height > MAX_SIZE) {
+      const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
+      width = Math.floor(width * scale);
+      height = Math.floor(height * scale);
+    }
+    
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, width, height);
+  };
+  
+  img.onerror = () => {
+    alert("画像の読み込みに失敗しました。");
+    URL.revokeObjectURL(objectUrl);
+    objectUrls.delete(canvasId);
+  };
+  
+  img.src = objectUrl;
+}
+
 // イベント設定
 window.onload = () => {
-  document.getElementById("image1").addEventListener("change", () => {
-    loadImage(document.getElementById("image1"), "canvas1");
-  });
-
-  document.getElementById("image2").addEventListener("change", () => {
-    loadImage(document.getElementById("image2"), "canvas2");
-  });
+  // ドラッグ&ドロップの設定
+  setupDropZone('dropZone1', 'image1', 'canvas1');
+  setupDropZone('dropZone2', 'image2', 'canvas2');
 
   document.getElementById("compareButton").addEventListener("click", compareImages);
 };

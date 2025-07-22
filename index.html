@@ -16,14 +16,22 @@
     <section class="upload">
       <div class="upload-box">
         <h2>画像1</h2>
-        <input type="file" id="image1" accept="image/*" />
+        <div class="drop-zone" id="dropZone1">
+          <p>ここに画像をドラッグ&ドロップ<br>または</p>
+          <input type="file" id="image1" accept="image/*" />
+          <label for="image1" class="file-label">ファイルを選択</label>
+        </div>
         <button onclick="clearImage('image1', 'canvas1')">クリア</button>
         <canvas id="canvas1"></canvas>
       </div>
 
       <div class="upload-box">
         <h2>画像2</h2>
-        <input type="file" id="image2" accept="image/*" />
+        <div class="drop-zone" id="dropZone2">
+          <p>ここに画像をドラッグ&ドロップ<br>または</p>
+          <input type="file" id="image2" accept="image/*" />
+          <label for="image2" class="file-label">ファイルを選択</label>
+        </div>
         <button onclick="clearImage('image2', 'canvas2')">クリア</button>
         <canvas id="canvas2"></canvas>
       </div>
