@@ -20,8 +20,8 @@
 
 ## 📸 スクリーンショット
 
-> ![QRコードの差分チェック](assets/screenshot.png)  
-> *QRコードの差分チェック*
+>![QRコードの差分チェック](assets/screenshot.png)  
+>*QRコードの差分チェック*
 
 ---
 
