@@ -1,3 +1,4 @@
+// 画像読み込み処理
 function loadImage(input, canvasId, callback) {
   const file = input.files[0];
   if (!file) return;
@@ -10,19 +11,23 @@ function loadImage(input, canvasId, callback) {
       canvas.height = img.height;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0);
-      callback();
+      if (callback) callback();
     };
     img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
+// 画像比較処理
 function compareImages() {
   const canvas1 = document.getElementById("canvas1");
   const canvas2 = document.getElementById("canvas2");
   const diffCanvas = document.getElementById("diffCanvas");
 
-  if (canvas1.width === 0 || canvas2.width === 0) return;
+  if (canvas1.width === 0 || canvas2.width === 0) {
+    alert("両方の画像を読み込んでください。");
+    return;
+  }
   if (canvas1.width !== canvas2.width || canvas1.height !== canvas2.height) {
     alert("画像のサイズが一致していません。");
     return;
@@ -70,13 +75,30 @@ function compareImages() {
   document.getElementById("diffRate").textContent = `差分率: ${percent}%`;
 }
 
+// 画像クリア処理
+function clearImage(inputId, canvasId) {
+  const input = document.getElementById(inputId);
+  input.value = "";
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  canvas.width = 0;
+  canvas.height = 0;
+  document.getElementById("diffRate").textContent = "";
+  const diffCanvas = document.getElementById("diffCanvas");
+  const diffCtx = diffCanvas.getContext("2d");
+  diffCtx.clearRect(0, 0, diffCanvas.width, diffCanvas.height);
+}
+
 // イベント設定
 window.onload = () => {
   document.getElementById("image1").addEventListener("change", () => {
-    loadImage(document.getElementById("image1"), "canvas1", compareImages);
+    loadImage(document.getElementById("image1"), "canvas1");
   });
 
   document.getElementById("image2").addEventListener("change", () => {
-    loadImage(document.getElementById("image2"), "canvas2", compareImages);
+    loadImage(document.getElementById("image2"), "canvas2");
   });
+
+  document.getElementById("compareButton").addEventListener("click", compareImages);
 };

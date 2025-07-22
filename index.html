@@ -17,14 +17,20 @@
       <div class="upload-box">
         <h2>画像1</h2>
         <input type="file" id="image1" accept="image/*" />
+        <button onclick="clearImage('image1', 'canvas1')">クリア</button>
         <canvas id="canvas1"></canvas>
       </div>
 
       <div class="upload-box">
         <h2>画像2</h2>
         <input type="file" id="image2" accept="image/*" />
+        <button onclick="clearImage('image2', 'canvas2')">クリア</button>
         <canvas id="canvas2"></canvas>
       </div>
+    </section>
+
+    <section class="compare-control">
+      <button id="compareButton">画像を比較</button>
     </section>
 
     <section class="result">
