@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルテスト画像生成</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .download-links { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>シンプルテスト画像生成ツール</h1>
+    <p>ImageDiffSecの動作確認用の単純なテスト画像を生成します。</p>
+
+    <div>
+        <h2>テスト1: 完全一致テスト</h2>
+        <button onclick="generateIdenticalTest()">同一画像を生成</button>
+        <br><br>
+        
+        <div>
+            <strong>画像A (300x300px):</strong><br>
+            <canvas id="test1-a" width="300" height="300"></canvas>
+            <div class="download-links">
+                <a id="download-test1-a" download="identical_a_300x300.png">📥 ダウンロード</a>
+            </div>
+        </div>
+        
+        <div>
+            <strong>画像B (200x200px - Aから切り出し):</strong><br>
+            <canvas id="test1-b" width="200" height="200"></canvas>
+            <div class="download-links">
+                <a id="download-test1-b" download="identical_b_200x200.png">📥 ダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h2>テスト2: わずかな差分テスト</h2>
+        <button onclick="generateMinorDiffTest()">微小差分画像を生成</button>
+        <br><br>
+        
+        <div>
+            <strong>画像A (300x300px):</strong><br>
+            <canvas id="test2-a" width="300" height="300"></canvas>
+            <div class="download-links">
+                <a id="download-test2-a" download="minor_diff_a_300x300.png">📥 ダウンロード</a>
+            </div>
+        </div>
+        
+        <div>
+            <strong>画像B (200x200px - 1ピクセル変更):</strong><br>
+            <canvas id="test2-b" width="200" height="200"></canvas>
+            <div class="download-links">
+                <a id="download-test2-b" download="minor_diff_b_200x200.png">📥 ダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h2>テスト3: QRコード風パターンテスト</h2>
+        <button onclick="generateQRLikeTest()">QRコード風画像を生成</button>
+        <br><br>
+        
+        <div>
+            <strong>画像A (400x400px):</strong><br>
+            <canvas id="test3-a" width="400" height="400"></canvas>
+            <div class="download-links">
+                <a id="download-test3-a" download="qr_like_a_400x400.png">📥 ダウンロード</a>
+            </div>
+        </div>
+        
+        <div>
+            <strong>画像B (200x200px - 完全一致):</strong><br>
+            <canvas id="test3-b" width="200" height="200"></canvas>
+            <div class="download-links">
+                <a id="download-test3-b" download="qr_like_b_200x200.png">📥 ダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // テスト1: 完全一致テスト
+        function generateIdenticalTest() {
+            console.log('完全一致テスト画像生成開始');
+            
+            // 画像A (300x300)
+            const canvasA = document.getElementById('test1-a');
+            const ctxA = canvasA.getContext('2d');
+            ctxA.imageSmoothingEnabled = false;
+            
+            // 白背景
+            ctxA.fillStyle = '#ffffff';
+            ctxA.fillRect(0, 0, 300, 300);
+            
+            // 中央に200x200の領域を作成
+            const centerX = 50; // (300-200)/2
+            const centerY = 50;
+            
+            // チェッカーボードパターンを描画
+            const cellSize = 20;
+            for (let y = 0; y < 200; y += cellSize) {
+                for (let x = 0; x < 200; x += cellSize) {
+                    const isBlack = ((x / cellSize) + (y / cellSize)) % 2 === 0;
+                    ctxA.fillStyle = isBlack ? '#000000' : '#ffffff';
+                    ctxA.fillRect(centerX + x, centerY + y, cellSize, cellSize);
+                }
+            }
+            
+            // ダウンロードリンク設定
+            canvasA.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-test1-a').href = url;
+            });
+            
+            // 画像B (200x200) - Aから完全にコピー
+            const canvasB = document.getElementById('test1-b');
+            const ctxB = canvasB.getContext('2d');
+            ctxB.imageSmoothingEnabled = false;
+            
+            // Aの中央部分(200x200)を完全にコピー
+            const imageData = ctxA.getImageData(centerX, centerY, 200, 200);
+            ctxB.putImageData(imageData, 0, 0);
+            
+            // ダウンロードリンク設定
+            canvasB.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-test1-b').href = url;
+            });
+            
+            console.log('完全一致テスト画像生成完了');
+            console.log('期待結果: 差分率 0%');
+        }
+        
+        // テスト2: わずかな差分テスト
+        function generateMinorDiffTest() {
+            console.log('微小差分テスト画像生成開始');
+            
+            // 画像A (300x300)
+            const canvasA = document.getElementById('test2-a');
+            const ctxA = canvasA.getContext('2d');
+            ctxA.imageSmoothingEnabled = false;
+            
+            // 白背景
+            ctxA.fillStyle = '#ffffff';
+            ctxA.fillRect(0, 0, 300, 300);
+            
+            // 中央に200x200の領域を作成
+            const centerX = 50;
+            const centerY = 50;
+            
+            // シンプルなパターンを描画（テキストなし）
+            ctxA.fillStyle = '#cccccc';
+            ctxA.fillRect(centerX, centerY, 200, 200);
+            ctxA.fillStyle = '#000000';
+            ctxA.fillRect(centerX + 50, centerY + 50, 100, 100);
+            
+            // ダウンロードリンク設定
+            canvasA.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-test2-a').href = url;
+            });
+            
+            // 画像B (200x200) - Aから一部変更してコピー
+            const canvasB = document.getElementById('test2-b');
+            const ctxB = canvasB.getContext('2d');
+            ctxB.imageSmoothingEnabled = false;
+            
+            // Aの中央部分(200x200)をコピー
+            const imageData = ctxA.getImageData(centerX, centerY, 200, 200);
+            ctxB.putImageData(imageData, 0, 0);
+            
+            // 1ピクセルだけ変更
+            ctxB.fillStyle = '#ff0000';
+            ctxB.fillRect(100, 100, 1, 1);
+            
+            // ダウンロードリンク設定
+            canvasB.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-test2-b').href = url;
+            });
+            
+            console.log('微小差分テスト画像生成完了');
+            console.log('期待結果: 差分率 0.0025% (1ピクセル / 40000ピクセル)');
+        }
+        
+        // テスト3: QRコード風パターンテスト
+        function generateQRLikeTest() {
+            console.log('QRコード風パターンテスト画像生成開始');
+            
+            // 400x400の画像A
+            const canvasA = document.getElementById('test3-a');
+            const ctxA = canvasA.getContext('2d');
+            ctxA.imageSmoothingEnabled = false;
+            
+            // 白背景
+            ctxA.fillStyle = '#ffffff';
+            ctxA.fillRect(0, 0, 400, 400);
+            
+            // 中央に200x200のQRコード風パターンを作成
+            const centerX = 100; // (400-200)/2
+            const centerY = 100;
+            
+            // 決定論的なQRコード風パターンを描画
+            const cellSize = 8; // 200/25 = 8px per cell
+            const pattern = [
+                [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,1,0,1,1,0,1,1,0,1,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,0,1,1,1,0,0,1,0,1,1,1,0,1],
+                [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
+                [1,0,1,1,1,0,1,0,0,1,0,1,0,0,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],
+                [0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0],
+                [1,1,0,1,1,0,1,1,0,1,1,1,0,1,1,0,1,1,0,1,1],
+                [0,1,1,0,0,1,0,0,1,0,1,0,1,0,0,1,1,0,0,1,0],
+                [1,0,1,1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,1,0,1],
+                [0,1,0,0,1,0,0,0,1,1,1,1,1,0,0,0,1,0,0,1,0],
+                [1,1,1,1,0,1,1,1,0,0,0,0,0,1,1,1,0,1,1,1,1],
+                [0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,0,0,0],
+                [1,1,1,1,1,1,1,0,0,1,0,1,0,0,1,1,1,1,1,1,1],
+                [1,0,0,0,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,0,1],
+                [1,0,1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,1,0,1],
+                [1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],
+                [1,0,1,1,1,0,1,0,0,1,0,1,0,0,1,0,1,1,1,0,1],
+                [1,0,0,0,0,0,1,0,1,1,1,1,1,0,1,0,0,0,0,0,1],
+                [1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1]
+            ];
+            
+            // パターンを描画
+            ctxA.fillStyle = '#000000';
+            for (let row = 0; row < pattern.length; row++) {
+                for (let col = 0; col < pattern[row].length; col++) {
+                    if (pattern[row][col] === 1) {
+                        ctxA.fillRect(centerX + col * cellSize, centerY + row * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+            
+            // ダウンロードリンク設定
+            canvasA.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-test3-a').href = url;
+            });
+            
+            // 200x200の画像B - Aから完全にコピー
+            const canvasB = document.getElementById('test3-b');
+            const ctxB = canvasB.getContext('2d');
+            ctxB.imageSmoothingEnabled = false;
+            
+            // Aの中央部分(200x200)を完全にコピー
+            const imageData = ctxA.getImageData(centerX, centerY, 200, 200);
+            ctxB.putImageData(imageData, 0, 0);
+            
+            // ダウンロードリンク設定
+            canvasB.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('download-test3-b').href = url;
+            });
+            
+            console.log('QRコード風パターンテスト画像生成完了');
+            console.log('期待結果: 差分率 0% (完全一致)');
+        }
+        
+        // 初期生成
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                generateIdenticalTest();
+                generateMinorDiffTest();
+                generateQRLikeTest();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

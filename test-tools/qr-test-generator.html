@@ -132,27 +132,27 @@
         <br><br>
         
         <div>
-            <strong>正常版 (350x350px):</strong><br>
-            <canvas id="scenario3-legit-canvas" width="350" height="350"></canvas>
+            <strong>正常版 (400x300px):</strong><br>
+            <canvas id="scenario3-legit-canvas" width="400" height="300"></canvas>
             <div class="download-links">
-                <a id="download-scenario3-legit" download="qr_legit_350x350.png">📥 ダウンロード</a>
+                <a id="download-scenario3-legit" download="qr_legit_400x300.png">📥 ダウンロード</a>
             </div>
         </div>
         
         <div>
-            <strong>改ざん版 (250x400px):</strong><br>
-            <canvas id="scenario3-fake-canvas" width="250" height="400"></canvas>
+            <strong>改ざん版 (250x200px):</strong><br>
+            <canvas id="scenario3-fake-canvas" width="250" height="200"></canvas>
             <div class="download-links">
-                <a id="download-scenario3-fake" download="qr_fake_250x400.png">📥 ダウンロード</a>
+                <a id="download-scenario3-fake" download="qr_fake_250x200.png">📥 ダウンロード</a>
             </div>
         </div>
     </div>
 
     <script>
-        // QRコード生成の基本関数
-        function createQRCode(text, size) {
+        // QRコード生成の基本関数（整数ピクセル版）
+        function createQRCode(text, targetSize) {
             try {
-                console.log('QRコード生成開始:', text, 'サイズ:', size);
+                console.log('QRコード生成開始:', text, 'ターゲットサイズ:', targetSize);
                 
                 // エラー訂正レベルを下げて生成を確実にする
                 let qr;
@@ -169,31 +169,53 @@
                 }
                 
                 const moduleCount = qr.getModuleCount();
-                const cellSize = Math.max(2, Math.floor(size / moduleCount)); // 最小セルサイズを確保
-                const qrSize = cellSize * moduleCount;
                 
-                console.log('QRコードサイズ計算:', moduleCount, 'x', moduleCount, 'セルサイズ:', cellSize, '最終サイズ:', qrSize);
-                
+                // 固定サイズのキャンバスを作成
                 const canvas = document.createElement('canvas');
-                canvas.width = qrSize;
-                canvas.height = qrSize;
+                canvas.width = targetSize;
+                canvas.height = targetSize;
                 const ctx = canvas.getContext('2d');
+                
+                // アンチエイリアシングを無効にして完全なピクセル一致を保証
+                ctx.imageSmoothingEnabled = false;
                 
                 // 白背景
                 ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, qrSize, qrSize);
+                ctx.fillRect(0, 0, targetSize, targetSize);
                 
-                // QRコード描画
+                // 整数ピクセルでの計算（小数点を避ける）
+                const maxQRSize = Math.floor(targetSize * 0.8); // 80%のサイズ
+                const cellSize = Math.floor(maxQRSize / moduleCount);
+                const qrSize = cellSize * moduleCount;
+                const offsetX = Math.floor((targetSize - qrSize) / 2);
+                const offsetY = Math.floor((targetSize - qrSize) / 2);
+                
+                console.log('QRコードサイズ計算:', moduleCount, 'x', moduleCount, 'セルサイズ:', cellSize, 'オフセット:', offsetX, offsetY);
+                
+                // QRコード描画（整数ピクセル座標）
                 ctx.fillStyle = '#000000';
                 for (let row = 0; row < moduleCount; row++) {
                     for (let col = 0; col < moduleCount; col++) {
                         if (qr.isDark(row, col)) {
-                            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                            const x = offsetX + col * cellSize;
+                            const y = offsetY + row * cellSize;
+                            ctx.fillRect(x, y, cellSize, cellSize);
                         }
                     }
                 }
                 
-                console.log('QRコード生成成功');
+                // デバッグ情報をキャンバスに保存
+                canvas._debugInfo = {
+                    moduleCount,
+                    maxQRSize,
+                    cellSize,
+                    qrSize,
+                    offsetX,
+                    offsetY,
+                    targetSize
+                };
+                
+                console.log('QRコード生成成功 - 固定サイズ:', targetSize);
                 return canvas;
             } catch (error) {
                 console.error('QRコード生成エラー:', error);
@@ -201,12 +223,12 @@
                 
                 // フォールバック：シンプルなテキスト表示
                 const canvas = document.createElement('canvas');
-                canvas.width = size;
-                canvas.height = size;
+                canvas.width = targetSize;
+                canvas.height = targetSize;
                 const ctx = canvas.getContext('2d');
                 
                 ctx.fillStyle = '#FFFFFF';
-                ctx.fillRect(0, 0, size, size);
+                ctx.fillRect(0, 0, targetSize, targetSize);
                 ctx.fillStyle = '#000000';
                 ctx.font = '12px Arial';
                 ctx.fillText('QR生成失敗', 10, 20);
@@ -221,24 +243,34 @@
             const text = document.getElementById('scenario1-text').value;
             
             try {
-                // QRコードを生成
+                // QRコードを一度だけ生成
                 const qrCanvas = createQRCode(text, 200);
                 if (!qrCanvas) throw new Error('QRコード生成に失敗');
+                
+                // QRコードの内部オフセット情報を取得
+                const debugInfo = qrCanvas._debugInfo || { offsetX: 0, offsetY: 0 };
                 
                 // 大きな画像（背景付き）
                 const largeCanvas = document.getElementById('scenario1-large');
                 const largeCtx = largeCanvas.getContext('2d');
                 
-                // 背景を描画
+                // アンチエイリアシングを無効化
+                largeCtx.imageSmoothingEnabled = false;
+                
+                // シンプルな背景を描画（テキストなし）
                 largeCtx.fillStyle = '#f0f0f0';
                 largeCtx.fillRect(0, 0, 400, 400);
-                largeCtx.fillStyle = '#333';
-                largeCtx.font = '16px Arial';
-                largeCtx.fillText('QRコードテスト画像', 20, 30);
-                largeCtx.fillText('400x400px フルサイズ', 20, 50);
                 
-                // QRコードを中央に配置
-                largeCtx.drawImage(qrCanvas, 100, 100);
+                // QRコードの内部オフセットを考慮して配置位置を調整
+                // 実際のQRコードが(100, 100)に来るように調整
+                const adjustedX = 100 - debugInfo.offsetX;
+                const adjustedY = 100 - debugInfo.offsetY;
+                largeCtx.drawImage(qrCanvas, adjustedX, adjustedY);
+                
+                console.log('QRコード配置詳細:');
+                console.log('- QRキャンバス配置位置:', adjustedX, adjustedY);
+                console.log('- QRコード内部オフセット:', debugInfo.offsetX, debugInfo.offsetY);
+                console.log('- 実際のQRコード位置:', adjustedX + debugInfo.offsetX, adjustedY + debugInfo.offsetY);
                 
                 // ダウンロードリンクを設定
                 largeCanvas.toBlob((blob) => {
@@ -246,11 +278,17 @@
                     document.getElementById('download-scenario1-large').href = url;
                 });
                 
-                // 小さな画像（QRコードのみ）
+                // 小さな画像（QRコードのみ） - 同じqrCanvasから切り出し
                 const smallCanvas = document.getElementById('scenario1-small');
                 const smallCtx = smallCanvas.getContext('2d');
+                
+                // アンチエイリアシングを無効化
+                smallCtx.imageSmoothingEnabled = false;
                 smallCtx.clearRect(0, 0, 200, 200);
-                smallCtx.drawImage(qrCanvas, 0, 0);
+                
+                // 完全に同じImageDataを使用（ピクセル単位での完全一致を保証）
+                const extractedData = largeCtx.getImageData(100, 100, 200, 200);
+                smallCtx.putImageData(extractedData, 0, 0);
                 
                 // ダウンロードリンクを設定
                 smallCanvas.toBlob((blob) => {
@@ -280,9 +318,6 @@
                 
                 largeCtx.fillStyle = '#e6f3ff';
                 largeCtx.fillRect(0, 0, 500, 300);
-                largeCtx.fillStyle = '#0066cc';
-                largeCtx.font = '20px Arial';
-                largeCtx.fillText('大きな背景 500x300', 20, 30);
                 
                 largeCtx.drawImage(qrCanvas, 50, 50);
                 
@@ -297,9 +332,6 @@
                 
                 smallCtx.fillStyle = '#fff2e6';
                 smallCtx.fillRect(0, 0, 300, 200);
-                smallCtx.fillStyle = '#cc6600';
-                smallCtx.font = '16px Arial';
-                smallCtx.fillText('小さな背景 300x200', 20, 25);
                 
                 smallCtx.drawImage(qrCanvas, 25, 35);
                 
@@ -324,8 +356,8 @@
                 console.log('シナリオ3開始 - 正常版:', legitText);
                 console.log('シナリオ3開始 - 改ざん版:', fakeText);
                 
-                // 正常版QRコード
-                const legitQR = createQRCode(legitText, 180); // サイズを少し小さく
+                // 正常版QRコード（固定サイズ）
+                const legitQR = createQRCode(legitText, 200); // 固定200pxサイズ
                 if (!legitQR) {
                     console.error('正常版QRコード生成失敗');
                     throw new Error('正常版QRコード生成に失敗');
@@ -336,19 +368,15 @@
                 const legitCtx = legitCanvas.getContext('2d');
                 
                 // キャンバスをクリア
-                legitCtx.clearRect(0, 0, 350, 350);
+                legitCtx.clearRect(0, 0, 400, 300);
                 
-                legitCtx.fillStyle = '#f0fff0';
-                legitCtx.fillRect(0, 0, 350, 350);
-                legitCtx.fillStyle = '#006600';
-                legitCtx.font = '16px Arial';
-                legitCtx.fillText('正常版 350x350', 20, 25);
-                legitCtx.font = '12px Arial';
-                legitCtx.fillText('URL: ' + legitText.substring(0, 30) + '...', 20, 45);
+                // シンプルな背景（文言なし）
+                legitCtx.fillStyle = '#f8f8f8';
+                legitCtx.fillRect(0, 0, 400, 300);
                 
                 // QRコードを描画（中央配置）
-                const qrX = (350 - legitQR.width) / 2;
-                const qrY = 85;
+                const qrX = (400 - legitQR.width) / 2;
+                const qrY = (300 - legitQR.height) / 2;
                 legitCtx.drawImage(legitQR, qrX, qrY);
                 
                 // ダウンロードリンクを設定
@@ -366,7 +394,7 @@
                 setTimeout(() => {
                     try {
                         console.log('改ざん版QRコード生成開始');
-                        const fakeQR = createQRCode(fakeText, 180); // サイズを少し小さく
+                        const fakeQR = createQRCode(fakeText, 200); // 正常版と同じ200pxサイズ
                         if (!fakeQR) {
                             console.error('改ざん版QRコード生成失敗');
                             throw new Error('改ざん版QRコード生成に失敗');
@@ -377,19 +405,15 @@
                         const fakeCtx = fakeCanvas.getContext('2d');
                         
                         // キャンバスをクリア
-                        fakeCtx.clearRect(0, 0, 250, 400);
+                        fakeCtx.clearRect(0, 0, 250, 200);
                         
-                        fakeCtx.fillStyle = '#fff0f0';
-                        fakeCtx.fillRect(0, 0, 250, 400);
-                        fakeCtx.fillStyle = '#cc0000';
-                        fakeCtx.font = '16px Arial';
-                        fakeCtx.fillText('改ざん版 250x400', 20, 25);
-                        fakeCtx.font = '11px Arial';
-                        fakeCtx.fillText('URL: ' + fakeText.substring(0, 22) + '...', 20, 45);
+                        // シンプルな背景（文言なし）
+                        fakeCtx.fillStyle = '#f8f8f8';
+                        fakeCtx.fillRect(0, 0, 250, 200);
                         
                         // QRコードを描画（中央配置）
                         const fakeQrX = (250 - fakeQR.width) / 2;
-                        const fakeQrY = 110;
+                        const fakeQrY = (200 - fakeQR.height) / 2;
                         fakeCtx.drawImage(fakeQR, fakeQrX, fakeQrY);
                         
                         // ダウンロードリンクを設定

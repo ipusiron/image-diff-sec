@@ -1,4 +1,4 @@
-// 画像処理に関するロジック
+// 画像処理に関するロジック（修正版）
 
 // グローバル変数
 let objectUrls = new Map(); // URL管理用
@@ -90,7 +90,7 @@ function handleFileSelect(file, canvasId) {
   img.src = objectUrl;
 }
 
-// 正規化相互相関（NCC）によるテンプレートマッチング（2段階精密版）
+// 改良版：2段階テンプレートマッチング
 function findBestMatch(largeCanvas, smallCanvas) {
   const largeCtx = largeCanvas.getContext("2d", { willReadFrequently: true });
   const smallCtx = smallCanvas.getContext("2d", { willReadFrequently: true });
@@ -98,52 +98,59 @@ function findBestMatch(largeCanvas, smallCanvas) {
   const largeData = largeCtx.getImageData(0, 0, largeCanvas.width, largeCanvas.height);
   const smallData = smallCtx.getImageData(0, 0, smallCanvas.width, smallCanvas.height);
   
-  // 第1段階: 粗い探索（効率重視）
+  console.log(`Template matching: Large(${largeCanvas.width}x${largeCanvas.height}) vs Small(${smallCanvas.width}x${smallCanvas.height})`);
+  
+  // === 第1段階：粗い探索 ===
+  let coarseStep = Math.max(4, Math.floor(Math.min(largeCanvas.width, largeCanvas.height) / 80));
   let coarseBestX = 0, coarseBestY = 0, coarseBestScore = -1;
-  const coarseStep = Math.max(4, Math.floor(Math.min(largeCanvas.width, largeCanvas.height) / 80));
   
-  console.log(`第1段階探索開始 - ステップ: ${coarseStep}, 探索領域: ${largeCanvas.width - smallCanvas.width + 1} x ${largeCanvas.height - smallCanvas.height + 1}`);
+  console.log(`第1段階: 粗い探索 (step=${coarseStep})`);
   
-  let sampleCount = 0;
-  for (let y = 0; y <= largeCanvas.height - smallCanvas.height; y += coarseStep) {
-    for (let x = 0; x <= largeCanvas.width - smallCanvas.width; x += coarseStep) {
-      const ncc = calculateNCC(largeData, smallData, x, y, largeCanvas.width, smallCanvas.width, smallCanvas.height, coarseStep);
-      sampleCount++;
+  const coarseResult = performTemplateMatch(largeData, smallData, largeCanvas, smallCanvas, coarseStep);
+  coarseBestX = coarseResult.x;
+  coarseBestY = coarseResult.y;
+  coarseBestScore = coarseResult.score;
+  
+  console.log(`粗い探索結果: (${coarseBestX}, ${coarseBestY}), スコア: ${coarseBestScore.toFixed(4)}`);
+  
+  // === 第2段階：精密探索 ===
+  // 粗い探索結果の周辺を1ピクセル単位で詳細探索
+  const searchRadius = Math.max(coarseStep * 2, 8);
+  let fineBestX = coarseBestX, fineBestY = coarseBestY, fineBestScore = coarseBestScore;
+  
+  console.log(`第2段階: 精密探索 (半径=${searchRadius})`);
+  
+  const startX = Math.max(0, coarseBestX - searchRadius);
+  const endX = Math.min(largeCanvas.width - smallCanvas.width, coarseBestX + searchRadius);
+  const startY = Math.max(0, coarseBestY - searchRadius);
+  const endY = Math.min(largeCanvas.height - smallCanvas.height, coarseBestY + searchRadius);
+  
+  // 1ピクセル単位での精密探索
+  for (let y = startY; y <= endY; y++) {
+    for (let x = startX; x <= endX; x++) {
+      const ncc = calculateNCC(largeData, smallData, x, y, largeCanvas.width, smallCanvas.width, smallCanvas.height, 1);
       
-      if (ncc > coarseBestScore) {
-        coarseBestScore = ncc;
-        coarseBestX = x;
-        coarseBestY = y;
-        console.log(`新しい最適位置発見: (${x}, ${y}), NCCスコア: ${ncc.toFixed(4)}`);
+      if (ncc > fineBestScore) {
+        fineBestScore = ncc;
+        fineBestX = x;
+        fineBestY = y;
       }
     }
   }
   
-  console.log(`第1段階完了 - サンプル数: ${sampleCount}`);
+  console.log(`精密探索結果: (${fineBestX}, ${fineBestY}), スコア: ${fineBestScore.toFixed(4)}`);
+  console.log(`改善: ${(fineBestScore - coarseBestScore).toFixed(4)}`);
   
-  console.log(`第1段階結果: (${coarseBestX}, ${coarseBestY}), NCCスコア: ${coarseBestScore.toFixed(4)}`);
+  return { x: fineBestX, y: fineBestY, score: fineBestScore };
+}
+
+// テンプレートマッチング実行
+function performTemplateMatch(largeData, smallData, largeCanvas, smallCanvas, step) {
+  let bestX = 0, bestY = 0, bestScore = -1;
   
-  // 第2段階: 精密探索（精度重視）
-  const searchRange = Math.max(coarseStep * 2, 8); // 探索範囲
-  const startX = Math.max(0, coarseBestX - searchRange);
-  const endX = Math.min(largeCanvas.width - smallCanvas.width, coarseBestX + searchRange);
-  const startY = Math.max(0, coarseBestY - searchRange);
-  const endY = Math.min(largeCanvas.height - smallCanvas.height, coarseBestY + searchRange);
-  
-  // 範囲の妥当性チェック
-  if (startX > endX || startY > endY) {
-    console.warn('探索範囲が無効です。粗い探索の結果を使用します。');
-    return { x: coarseBestX, y: coarseBestY, score: coarseBestScore };
-  }
-  
-  console.log(`第2段階探索開始 - 範囲: x[${startX}-${endX}], y[${startY}-${endY}]`);
-  
-  let bestX = coarseBestX, bestY = coarseBestY, bestScore = coarseBestScore;
-  
-  // 1ピクセル単位で精密探索
-  for (let y = startY; y <= endY; y++) {
-    for (let x = startX; x <= endX; x++) {
-      const ncc = calculateNCC(largeData, smallData, x, y, largeCanvas.width, smallCanvas.width, smallCanvas.height, 1);
+  for (let y = 0; y <= largeCanvas.height - smallCanvas.height; y += step) {
+    for (let x = 0; x <= largeCanvas.width - smallCanvas.width; x += step) {
+      const ncc = calculateNCC(largeData, smallData, x, y, largeCanvas.width, smallCanvas.width, smallCanvas.height, step);
       
       if (ncc > bestScore) {
         bestScore = ncc;
@@ -153,43 +160,41 @@ function findBestMatch(largeCanvas, smallCanvas) {
     }
   }
   
-  console.log(`最終結果: (${bestX}, ${bestY}), NCCスコア: ${bestScore.toFixed(4)}`);
-  
   return { x: bestX, y: bestY, score: bestScore };
 }
 
-// NCC計算の共通関数
+// NCC計算（最適化版）
 function calculateNCC(largeData, smallData, offsetX, offsetY, largeWidth, smallWidth, smallHeight, step) {
-  // 小さい画像の平均値を計算
+  // 小さい画像の平均値を計算（正規化用）
   let smallMean = 0;
   let smallCount = 0;
-  for (let dy = 0; dy < smallHeight; dy += step) {
-    for (let dx = 0; dx < smallWidth; dx += step) {
+  
+  // 適応的サンプリング：stepが1の場合は全ピクセル、それ以外はサンプリング
+  const sampleStep = step === 1 ? 1 : Math.max(2, step);
+  
+  for (let dy = 0; dy < smallHeight; dy += sampleStep) {
+    for (let dx = 0; dx < smallWidth; dx += sampleStep) {
       const idx = (dy * smallWidth + dx) * 4;
-      if (idx + 2 < smallData.data.length) {
-        const gray = (smallData.data[idx] + smallData.data[idx + 1] + smallData.data[idx + 2]) / 3;
-        smallMean += gray;
-        smallCount++;
-      }
+      const gray = (smallData.data[idx] + smallData.data[idx + 1] + smallData.data[idx + 2]) / 3;
+      smallMean += gray;
+      smallCount++;
     }
   }
-  if (smallCount === 0) return 0;
   smallMean /= smallCount;
   
   // 大きい画像の対応領域の平均値を計算
   let largeMean = 0;
   let largeCount = 0;
-  for (let dy = 0; dy < smallHeight; dy += step) {
-    for (let dx = 0; dx < smallWidth; dx += step) {
+  for (let dy = 0; dy < smallHeight; dy += sampleStep) {
+    for (let dx = 0; dx < smallWidth; dx += sampleStep) {
       const largeIdx = ((offsetY + dy) * largeWidth + (offsetX + dx)) * 4;
-      if (largeIdx + 2 < largeData.data.length) {
+      if (largeIdx + 2 < largeData.data.length) { // 境界チェック
         const gray = (largeData.data[largeIdx] + largeData.data[largeIdx + 1] + largeData.data[largeIdx + 2]) / 3;
         largeMean += gray;
         largeCount++;
       }
     }
   }
-  if (largeCount === 0) return 0;
   largeMean /= largeCount;
   
   // 正規化相互相関の計算
@@ -197,8 +202,8 @@ function calculateNCC(largeData, smallData, offsetX, offsetY, largeWidth, smallW
   let largeSumSq = 0;
   let smallSumSq = 0;
   
-  for (let dy = 0; dy < smallHeight; dy += step) {
-    for (let dx = 0; dx < smallWidth; dx += step) {
+  for (let dy = 0; dy < smallHeight; dy += sampleStep) {
+    for (let dx = 0; dx < smallWidth; dx += sampleStep) {
       const largeIdx = ((offsetY + dy) * largeWidth + (offsetX + dx)) * 4;
       const smallIdx = (dy * smallWidth + dx) * 4;
       
@@ -221,7 +226,7 @@ function calculateNCC(largeData, smallData, offsetX, offsetY, largeWidth, smallW
   return denominator > 0 ? numerator / denominator : 0;
 }
 
-// 重複領域の検出と比較
+// 重複領域の検出と比較（改良版）
 function compareImagesWithOverlap() {
   const canvas1 = document.getElementById("canvas1");
   const canvas2 = document.getElementById("canvas2");
@@ -240,53 +245,29 @@ function compareImagesWithOverlap() {
   // 異なるサイズの場合：重複領域を検出
   let largeCanvas, smallCanvas, isCanvas1Large;
   
-  // テンプレートマッチングが可能かどうかで判定
-  const canvas1CanContain2 = canvas1.width >= canvas2.width && canvas1.height >= canvas2.height;
-  const canvas2CanContain1 = canvas2.width >= canvas1.width && canvas2.height >= canvas1.height;
-  
-  if (canvas1CanContain2 && !canvas2CanContain1) {
-    // Canvas1のみがCanvas2を含める
+  if (canvas1.width * canvas1.height > canvas2.width * canvas2.height) {
     largeCanvas = canvas1;
     smallCanvas = canvas2;
     isCanvas1Large = true;
-  } else if (canvas2CanContain1 && !canvas1CanContain2) {
-    // Canvas2のみがCanvas1を含める
+  } else {
     largeCanvas = canvas2;
     smallCanvas = canvas1;
     isCanvas1Large = false;
-  } else if (canvas1CanContain2 && canvas2CanContain1) {
-    // 両方が可能な場合は面積で判定
-    if (canvas1.width * canvas1.height > canvas2.width * canvas2.height) {
-      largeCanvas = canvas1;
-      smallCanvas = canvas2;
-      isCanvas1Large = true;
-    } else {
-      largeCanvas = canvas2;
-      smallCanvas = canvas1;
-      isCanvas1Large = false;
-    }
-  } else {
-    // どちらも他方を含めない場合はエラー
-    alert("両画像のサイズ関係では重複領域の検出ができません。");
-    return;
   }
   
   // 小さい画像が大きい画像内に収まるかチェック
-  // （アスペクト比が違っても、総ピクセル数で小さい方が大きい方に含まれるべき）
   const canFitInside = smallCanvas.width <= largeCanvas.width && smallCanvas.height <= largeCanvas.height;
   
   if (!canFitInside) {
-    // どちらの次元も大きい画像を超える場合のみエラー
     if (smallCanvas.width > largeCanvas.width && smallCanvas.height > largeCanvas.height) {
       alert("小さい方の画像が大きい方の画像よりも大きすぎます。比較できません。");
       return;
     }
-    // 一方の次元のみ大きい場合は警告して続行
     console.warn("画像のアスペクト比が異なりますが、重複領域の検出を試行します。");
   }
 
   // テンプレートマッチングで最適位置を検出
-  document.getElementById("diffRate").textContent = "重複領域を検索中...";
+  document.getElementById("diffRate").textContent = "高精度重複領域検索中...";
   
   // 非同期処理でUIブロックを防ぐ
   setTimeout(() => {
@@ -309,7 +290,7 @@ function compareImagesWithOverlap() {
     const diff = diffCtx.createImageData(overlapWidth, overlapHeight);
     
     let diffCount = 0;
-    const threshold = 30; // 色差の許容範囲を追加
+    const threshold = 30; // 色差の許容範囲
     
     for (let i = 0; i < largeRegion.data.length; i += 4) {
       const r1 = largeRegion.data[i];
@@ -320,20 +301,12 @@ function compareImagesWithOverlap() {
       const g2 = smallRegion.data[i + 1];
       const b2 = smallRegion.data[i + 2];
       
-      // 色差を計算（ユークリッド距離）
-      const colorDiff = Math.sqrt(
-        (r1 - r2) * (r1 - r2) + 
-        (g1 - g2) * (g1 - g2) + 
-        (b1 - b2) * (b1 - b2)
-      );
+      // 厳密な比較（改良版）
+      const exactMatch = r1 === r2 && g1 === g2 && b1 === b2;
       
-      // 構造的比較：白と黒の境界が重要
-      const isWhite1 = (r1 + g1 + b1) / 3 > 128;
-      const isWhite2 = (r2 + g2 + b2) / 3 > 128;
-      const structuralDiff = isWhite1 !== isWhite2;
-      
-      // NCCが高い場合は構造的差分のみ重視
-      const isSignificantDiff = match.score > 0.9 ? structuralDiff : colorDiff > threshold;
+      // 高精度マッチの場合は厳密比較を優先
+      const isSignificantDiff = match.score > 0.95 ? !exactMatch : 
+        Math.sqrt((r1-r2)*(r1-r2) + (g1-g2)*(g1-g2) + (b1-b2)*(b1-b2)) > threshold;
       
       if (isSignificantDiff) {
         diff.data[i] = 255;     // 赤
@@ -354,9 +327,9 @@ function compareImagesWithOverlap() {
     const totalPixels = overlapWidth * overlapHeight;
     const percent = ((diffCount / totalPixels) * 100).toFixed(2);
     const largerImageName = isCanvas1Large ? "画像1" : "画像2";
-    const scoreInfo = match.score > 0.9 ? " (構造一致)" : ` (NCCスコア: ${match.score.toFixed(3)})`;
+    const qualityInfo = match.score > 0.95 ? " (高精度マッチ)" : ` (NCCスコア: ${match.score.toFixed(3)})`;
     document.getElementById("diffRate").textContent = 
-      `差分率: ${percent}%${scoreInfo} (${largerImageName}内の位置: ${match.x}, ${match.y})`;
+      `差分率: ${percent}%${qualityInfo} (${largerImageName}内の位置: ${match.x}, ${match.y})`;
   }, 10);
 }
 
