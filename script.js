@@ -205,11 +205,42 @@ function handleFileSelect(file, canvasId) {
   img.src = objectUrl;
 }
 
+// ダークモード切り替え機能
+function setupDarkMode() {
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const body = document.body;
+  
+  // 保存されている設定を読み込む
+  const savedDarkMode = localStorage.getItem('darkMode');
+  if (savedDarkMode === 'true') {
+    body.classList.add('dark-mode');
+  }
+  
+  // システムのダークモード設定を検出（初回のみ）
+  if (savedDarkMode === null) {
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (prefersDarkMode) {
+      body.classList.add('dark-mode');
+      localStorage.setItem('darkMode', 'true');
+    }
+  }
+  
+  // 切り替えボタンのクリックイベント
+  darkModeToggle.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    const isDarkMode = body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDarkMode.toString());
+  });
+}
+
 // イベント設定
 window.onload = () => {
   // ドラッグ&ドロップの設定
   setupDropZone('dropZone1', 'image1', 'canvas1');
   setupDropZone('dropZone2', 'image2', 'canvas2');
+  
+  // ダークモードの設定
+  setupDarkMode();
 
   document.getElementById("compareButton").addEventListener("click", compareImages);
 };
