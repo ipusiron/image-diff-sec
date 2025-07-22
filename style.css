@@ -13,6 +13,18 @@ header, footer {
   padding: 1rem;
 }
 
+footer a {
+  color: #87ceeb;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: #add8e6;
+  text-decoration: underline;
+}
+
 h1 {
   margin: 0;
   font-size: 2rem;
