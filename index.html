@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ImageDiffSec - 2画像のピクセル差分検出ツール</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>ImageDiffSec</h1>
+    <p>画像の差分を視覚的に比較・検出するセキュリティツール</p>
+  </header>
+
+  <main>
+    <section class="upload">
+      <div class="upload-box">
+        <h2>画像1</h2>
+        <input type="file" id="image1" accept="image/*" />
+        <canvas id="canvas1"></canvas>
+      </div>
+
+      <div class="upload-box">
+        <h2>画像2</h2>
+        <input type="file" id="image2" accept="image/*" />
+        <canvas id="canvas2"></canvas>
+      </div>
+    </section>
+
+    <section class="result">
+      <h2>差分表示</h2>
+      <canvas id="diffCanvas"></canvas>
+      <p id="diffRate"></p>
+    </section>
+  </main>
+
+	<footer class="app-footer">
+      <div class="footer">
+        🔗 GitHubリポジトリはこちら（<a href="https://github.com/ipusiron/image-diff-sec" target="_blank">ipusiron/image-diff-sec</a>）
+      </div>
+    </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
