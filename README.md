@@ -20,8 +20,8 @@
 
 ## 📸 スクリーンショット
 
-> ![](assets/screenshot.png)  
-> *差分が赤く強調表示された例*
+> ![QRコードの差分チェック](assets/screenshot.png)  
+> *QRコードの差分チェック*
 
 ---
 
