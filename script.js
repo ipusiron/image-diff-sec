@@ -233,6 +233,41 @@ function setupDarkMode() {
   });
 }
 
+// ヘルプモーダル機能
+function setupHelpModal() {
+  const helpButton = document.getElementById('helpButton');
+  const modal = document.getElementById('helpModal');
+  const modalClose = document.getElementById('modalClose');
+  
+  // ヘルプボタンクリックでモーダル表示
+  helpButton.addEventListener('click', () => {
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // 背景のスクロールを無効化
+  });
+  
+  // 閉じるボタンクリックでモーダル非表示
+  modalClose.addEventListener('click', () => {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto'; // スクロールを再有効化
+  });
+  
+  // モーダル外クリックでも閉じる
+  window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+  });
+  
+  // ESCキーでも閉じる
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.style.display === 'block') {
+      modal.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+  });
+}
+
 // イベント設定
 window.onload = () => {
   // ドラッグ&ドロップの設定
@@ -241,6 +276,9 @@ window.onload = () => {
   
   // ダークモードの設定
   setupDarkMode();
+  
+  // ヘルプモーダルの設定
+  setupHelpModal();
 
   document.getElementById("compareButton").addEventListener("click", compareImages);
 };

@@ -10,6 +10,9 @@
   <header>
     <h1>ImageDiffSec</h1>
     <p>画像の差分を視覚的に比較・検出するセキュリティツール</p>
+    <button id="helpButton" class="help-button" aria-label="ヘルプ">
+      <span>❓</span>
+    </button>
     <button id="darkModeToggle" class="dark-mode-toggle" aria-label="ダークモード切り替え">
       <span class="light-icon">🌞</span>
       <span class="dark-icon">🌙</span>
@@ -57,6 +60,68 @@
         🔗 GitHubリポジトリはこちら（<a href="https://github.com/ipusiron/image-diff-sec" target="_blank">ipusiron/image-diff-sec</a>）
       </div>
     </footer>
+
+  <!-- ヘルプモーダル -->
+  <div id="helpModal" class="modal">
+    <div class="modal-content">
+      <span class="modal-close" id="modalClose">&times;</span>
+      <h2>📚 ImageDiffSec ヘルプ</h2>
+      <div class="modal-body">
+        <h3>🔍 使い方</h3>
+        <ol>
+          <li><strong>画像の読み込み</strong>
+            <ul>
+              <li>「ファイルを選択」ボタンをクリック</li>
+              <li>または、点線枠内に画像をドラッグ&ドロップ</li>
+            </ul>
+          </li>
+          <li><strong>画像の比較</strong>
+            <ul>
+              <li>両方の画像を読み込んだ後、「画像を比較」ボタンをクリック</li>
+              <li>差分がある箇所が赤色で表示されます</li>
+            </ul>
+          </li>
+          <li><strong>結果の確認</strong>
+            <ul>
+              <li>差分率がパーセンテージで表示されます</li>
+              <li>差分率が高いほど、画像の違いが大きいことを意味します</li>
+            </ul>
+          </li>
+        </ol>
+
+        <h3>⚠️ 注意事項</h3>
+        <ul>
+          <li>比較する画像は<strong>同じサイズ</strong>である必要があります</li>
+          <li>大きすぎる画像（4096px以上）は自動的にリサイズされます</li>
+          <li>ブラウザ上で処理されるため、画像データはサーバーに送信されません</li>
+        </ul>
+
+        <h3>🛡 セキュリティ上の用途</h3>
+        <ul>
+          <li><strong>QRコードの改ざん検出</strong>：悪意あるリンクへの差し替えを検出</li>
+          <li><strong>文書の偽造チェック</strong>：契約書や証明書の改ざんを発見</li>
+          <li><strong>フィッシングサイトの検証</strong>：本物と偽物の微細な違いを検出</li>
+        </ul>
+
+        <h3>💡 ヒント</h3>
+        <ul>
+          <li>差分率が0.00%の場合、両画像は完全に同一です</li>
+          <li>差分率が1%未満でも、重要な改ざんが含まれている可能性があります</li>
+          <li>クリアボタンで画像をリセットできます</li>
+        </ul>
+
+        <h3>🌙 ダークモード</h3>
+        <p>右上の🌞/🌙ボタンでダークモードを切り替えられます。設定はブラウザに保存されます。</p>
+
+        <h3>🔗 関連情報</h3>
+        <ul>
+          <li><a href="https://github.com/ipusiron/image-diff-sec" target="_blank">GitHubリポジトリ</a></li>
+          <li>ライセンス: MIT License</li>
+          <li>作成者: ipusiron</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
