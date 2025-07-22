@@ -59,6 +59,10 @@ canvas {
   border: 1px solid #ccc;
 }
 
+.compare-control {
+  text-align: center;
+}
+
 .result {
   background: white;
   padding: 1rem;
