@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRコードテスト画像生成ツール</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .generator-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .download-links {
+            margin-top: 10px;
+        }
+        .scenario {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <h1>QRコードテスト画像生成ツール</h1>
+    <p>ImageDiffSecの異なるサイズ画像比較機能をテストするための画像を生成します。</p>
+
+    <!-- シナリオ1: フルサイズとトリミング -->
+    <div class="generator-section">
+        <h2>シナリオ1: フルサイズ vs トリミング版</h2>
+        <div class="scenario">
+            <strong>用途:</strong> スクリーンショットの全体画像と、QRコード部分をトリミングした画像の比較<br>
+            <strong>期待結果:</strong> QRコード部分が完全一致として検出される
+        </div>
+        
+        <label>QRコード内容:</label>
+        <input type="text" id="scenario1-text" value="https://akademeia.info/" style="width: 300px;">
+        <br><br>
+        
+        <button onclick="generateScenario1()">画像を生成</button>
+        <br><br>
+        
+        <div>
+            <strong>大きな画像 (400x400px):</strong><br>
+            <canvas id="scenario1-large" width="400" height="400"></canvas>
+            <div class="download-links">
+                <a id="download-scenario1-large" download="qr_full_400x400.png">📥 ダウンロード</a>
+            </div>
+        </div>
+        
+        <div>
+            <strong>小さな画像 (QR部分のみ 200x200px):</strong><br>
+            <canvas id="scenario1-small" width="200" height="200"></canvas>
+            <div class="download-links">
+                <a id="download-scenario1-small" download="qr_cropped_200x200.png">📥 ダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- シナリオ2: 背景違い -->
+    <div class="generator-section">
+        <h2>シナリオ2: 同一QRコード、異なる背景サイズ</h2>
+        <div class="scenario">
+            <strong>用途:</strong> 同じQRコードが異なるサイズの背景に配置された画像の比較<br>
+            <strong>期待結果:</strong> QRコード部分は一致、背景部分は無視される
+        </div>
+        
+        <label>QRコード内容:</label>
+        <input type="text" id="scenario2-text" value="https://github.com/ipusiron/image-diff-sec" style="width: 300px;">
+        <br><br>
+        
+        <button onclick="generateScenario2()">画像を生成</button>
+        <br><br>
+        
+        <div>
+            <strong>背景大 (500x300px):</strong><br>
+            <canvas id="scenario2-large" width="500" height="300"></canvas>
+            <div class="download-links">
+                <a id="download-scenario2-large" download="qr_bg_large_500x300.png">📥 ダウンロード</a>
+            </div>
+        </div>
+        
+        <div>
+            <strong>背景小 (300x200px):</strong><br>
+            <canvas id="scenario2-small" width="300" height="200"></canvas>
+            <div class="download-links">
+                <a id="download-scenario2-small" download="qr_bg_small_300x200.png">📥 ダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- シナリオ3: 改ざん検出 -->
+    <div class="generator-section">
+        <h2>シナリオ3: 改ざん検出テスト</h2>
+        <div class="scenario">
+            <strong>用途:</strong> 正常なQRコードと改ざんされたQRコードの比較（サイズ違い）<br>
+            <strong>期待結果:</strong> URLの違いによる差分が検出される
+        </div>
+        
+        <label>正常なURL:</label>
+        <input type="text" id="scenario3-legit" value="https://test.com" style="width: 300px;">
+        <br>
+        <label>改ざんURL:</label>
+        <input type="text" id="scenario3-fake" value="https://test.c0m" style="width: 300px;">
+        <br><br>
+        
+        <button onclick="generateScenario3()">画像を生成</button>
+        <br><br>
+        
+        <div>
+            <strong>正常版 (350x350px):</strong><br>
+            <canvas id="scenario3-legit-canvas" width="350" height="350"></canvas>
+            <div class="download-links">
+                <a id="download-scenario3-legit" download="qr_legit_350x350.png">📥 ダウンロード</a>
+            </div>
+        </div>
+        
+        <div>
+            <strong>改ざん版 (250x400px):</strong><br>
+            <canvas id="scenario3-fake-canvas" width="250" height="400"></canvas>
+            <div class="download-links">
+                <a id="download-scenario3-fake" download="qr_fake_250x400.png">📥 ダウンロード</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // QRコード生成の基本関数
+        function createQRCode(text, size) {
+            try {
+                console.log('QRコード生成開始:', text, 'サイズ:', size);
+                
+                // エラー訂正レベルを下げて生成を確実にする
+                let qr;
+                try {
+                    qr = qrcode(0, 'L'); // エラー訂正レベルを最低に
+                    qr.addData(text);
+                    qr.make();
+                } catch (firstError) {
+                    console.log('エラー訂正レベルLで失敗、再試行...');
+                    // 自動サイズ調整で再試行
+                    qr = qrcode(4, 'L'); // タイプを固定
+                    qr.addData(text);
+                    qr.make();
+                }
+                
+                const moduleCount = qr.getModuleCount();
+                const cellSize = Math.max(2, Math.floor(size / moduleCount)); // 最小セルサイズを確保
+                const qrSize = cellSize * moduleCount;
+                
+                console.log('QRコードサイズ計算:', moduleCount, 'x', moduleCount, 'セルサイズ:', cellSize, '最終サイズ:', qrSize);
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = qrSize;
+                canvas.height = qrSize;
+                const ctx = canvas.getContext('2d');
+                
+                // 白背景
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, qrSize, qrSize);
+                
+                // QRコード描画
+                ctx.fillStyle = '#000000';
+                for (let row = 0; row < moduleCount; row++) {
+                    for (let col = 0; col < moduleCount; col++) {
+                        if (qr.isDark(row, col)) {
+                            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+                        }
+                    }
+                }
+                
+                console.log('QRコード生成成功');
+                return canvas;
+            } catch (error) {
+                console.error('QRコード生成エラー:', error);
+                console.error('入力テキスト:', text);
+                
+                // フォールバック：シンプルなテキスト表示
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, size, size);
+                ctx.fillStyle = '#000000';
+                ctx.font = '12px Arial';
+                ctx.fillText('QR生成失敗', 10, 20);
+                ctx.fillText(text.substring(0, 20), 10, 40);
+                
+                return canvas;
+            }
+        }
+
+        // シナリオ1: フルサイズとトリミング
+        function generateScenario1() {
+            const text = document.getElementById('scenario1-text').value;
+            
+            try {
+                // QRコードを生成
+                const qrCanvas = createQRCode(text, 200);
+                if (!qrCanvas) throw new Error('QRコード生成に失敗');
+                
+                // 大きな画像（背景付き）
+                const largeCanvas = document.getElementById('scenario1-large');
+                const largeCtx = largeCanvas.getContext('2d');
+                
+                // 背景を描画
+                largeCtx.fillStyle = '#f0f0f0';
+                largeCtx.fillRect(0, 0, 400, 400);
+                largeCtx.fillStyle = '#333';
+                largeCtx.font = '16px Arial';
+                largeCtx.fillText('QRコードテスト画像', 20, 30);
+                largeCtx.fillText('400x400px フルサイズ', 20, 50);
+                
+                // QRコードを中央に配置
+                largeCtx.drawImage(qrCanvas, 100, 100);
+                
+                // ダウンロードリンクを設定
+                largeCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('download-scenario1-large').href = url;
+                });
+                
+                // 小さな画像（QRコードのみ）
+                const smallCanvas = document.getElementById('scenario1-small');
+                const smallCtx = smallCanvas.getContext('2d');
+                smallCtx.clearRect(0, 0, 200, 200);
+                smallCtx.drawImage(qrCanvas, 0, 0);
+                
+                // ダウンロードリンクを設定
+                smallCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('download-scenario1-small').href = url;
+                });
+                
+                console.log('シナリオ1 生成完了');
+            } catch (error) {
+                console.error('シナリオ1 生成エラー:', error);
+                alert('シナリオ1の生成に失敗しました: ' + error.message);
+            }
+        }
+
+        // シナリオ2: 背景違い
+        function generateScenario2() {
+            const text = document.getElementById('scenario2-text').value;
+            
+            try {
+                // QRコードを生成
+                const qrCanvas = createQRCode(text, 150);
+                if (!qrCanvas) throw new Error('QRコード生成に失敗');
+                
+                // 大きな背景
+                const largeCanvas = document.getElementById('scenario2-large');
+                const largeCtx = largeCanvas.getContext('2d');
+                
+                largeCtx.fillStyle = '#e6f3ff';
+                largeCtx.fillRect(0, 0, 500, 300);
+                largeCtx.fillStyle = '#0066cc';
+                largeCtx.font = '20px Arial';
+                largeCtx.fillText('大きな背景 500x300', 20, 30);
+                
+                largeCtx.drawImage(qrCanvas, 50, 50);
+                
+                largeCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('download-scenario2-large').href = url;
+                });
+                
+                // 小さな背景
+                const smallCanvas = document.getElementById('scenario2-small');
+                const smallCtx = smallCanvas.getContext('2d');
+                
+                smallCtx.fillStyle = '#fff2e6';
+                smallCtx.fillRect(0, 0, 300, 200);
+                smallCtx.fillStyle = '#cc6600';
+                smallCtx.font = '16px Arial';
+                smallCtx.fillText('小さな背景 300x200', 20, 25);
+                
+                smallCtx.drawImage(qrCanvas, 25, 35);
+                
+                smallCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('download-scenario2-small').href = url;
+                });
+                
+                console.log('シナリオ2 生成完了');
+            } catch (error) {
+                console.error('シナリオ2 生成エラー:', error);
+                alert('シナリオ2の生成に失敗しました: ' + error.message);
+            }
+        }
+
+        // シナリオ3: 改ざん検出
+        function generateScenario3() {
+            const legitText = document.getElementById('scenario3-legit').value;
+            const fakeText = document.getElementById('scenario3-fake').value;
+            
+            try {
+                console.log('シナリオ3開始 - 正常版:', legitText);
+                console.log('シナリオ3開始 - 改ざん版:', fakeText);
+                
+                // 正常版QRコード
+                const legitQR = createQRCode(legitText, 180); // サイズを少し小さく
+                if (!legitQR) {
+                    console.error('正常版QRコード生成失敗');
+                    throw new Error('正常版QRコード生成に失敗');
+                }
+                console.log('正常版QRコード生成成功');
+                
+                const legitCanvas = document.getElementById('scenario3-legit-canvas');
+                const legitCtx = legitCanvas.getContext('2d');
+                
+                // キャンバスをクリア
+                legitCtx.clearRect(0, 0, 350, 350);
+                
+                legitCtx.fillStyle = '#f0fff0';
+                legitCtx.fillRect(0, 0, 350, 350);
+                legitCtx.fillStyle = '#006600';
+                legitCtx.font = '16px Arial';
+                legitCtx.fillText('正常版 350x350', 20, 25);
+                legitCtx.font = '12px Arial';
+                legitCtx.fillText('URL: ' + legitText.substring(0, 30) + '...', 20, 45);
+                
+                // QRコードを描画（中央配置）
+                const qrX = (350 - legitQR.width) / 2;
+                const qrY = 85;
+                legitCtx.drawImage(legitQR, qrX, qrY);
+                
+                // ダウンロードリンクを設定
+                setTimeout(() => {
+                    legitCanvas.toBlob((blob) => {
+                        if (blob) {
+                            const url = URL.createObjectURL(blob);
+                            document.getElementById('download-scenario3-legit').href = url;
+                            console.log('正常版ダウンロードリンク設定完了');
+                        }
+                    });
+                }, 100);
+                
+                // 改ざん版QRコード（少し遅延させて生成）
+                setTimeout(() => {
+                    try {
+                        console.log('改ざん版QRコード生成開始');
+                        const fakeQR = createQRCode(fakeText, 180); // サイズを少し小さく
+                        if (!fakeQR) {
+                            console.error('改ざん版QRコード生成失敗');
+                            throw new Error('改ざん版QRコード生成に失敗');
+                        }
+                        console.log('改ざん版QRコード生成成功');
+                        
+                        const fakeCanvas = document.getElementById('scenario3-fake-canvas');
+                        const fakeCtx = fakeCanvas.getContext('2d');
+                        
+                        // キャンバスをクリア
+                        fakeCtx.clearRect(0, 0, 250, 400);
+                        
+                        fakeCtx.fillStyle = '#fff0f0';
+                        fakeCtx.fillRect(0, 0, 250, 400);
+                        fakeCtx.fillStyle = '#cc0000';
+                        fakeCtx.font = '16px Arial';
+                        fakeCtx.fillText('改ざん版 250x400', 20, 25);
+                        fakeCtx.font = '11px Arial';
+                        fakeCtx.fillText('URL: ' + fakeText.substring(0, 22) + '...', 20, 45);
+                        
+                        // QRコードを描画（中央配置）
+                        const fakeQrX = (250 - fakeQR.width) / 2;
+                        const fakeQrY = 110;
+                        fakeCtx.drawImage(fakeQR, fakeQrX, fakeQrY);
+                        
+                        // ダウンロードリンクを設定
+                        setTimeout(() => {
+                            fakeCanvas.toBlob((blob) => {
+                                if (blob) {
+                                    const url = URL.createObjectURL(blob);
+                                    document.getElementById('download-scenario3-fake').href = url;
+                                    console.log('改ざん版ダウンロードリンク設定完了');
+                                }
+                            });
+                        }, 100);
+                        
+                        console.log('シナリオ3 生成完了');
+                    } catch (fakeError) {
+                        console.error('改ざん版生成エラー:', fakeError);
+                        // 改ざん版でエラーが出ても正常版は表示されるようにする
+                        alert('改ざん版の生成に失敗しました: ' + fakeError.message + '\n正常版は利用できます。');
+                    }
+                }, 200);
+                
+            } catch (error) {
+                console.error('シナリオ3 生成エラー:', error);
+                alert('シナリオ3の生成に失敗しました: ' + error.message);
+            }
+        }
+
+        // 初期生成
+        window.addEventListener('load', function() {
+            console.log('ページ読み込み完了、QRコード生成開始...');
+            
+            // 少し遅延させてから実行
+            setTimeout(() => {
+                try {
+                    generateScenario1();
+                    generateScenario2();
+                    generateScenario3();
+                    console.log('全シナリオ生成完了');
+                } catch (error) {
+                    console.error('初期生成エラー:', error);
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>
