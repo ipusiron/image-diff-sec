@@ -1,3 +1,39 @@
+<!--
+---
+id: day021
+slug: image-diff-sec
+
+title: "ImageDiffSec"
+
+subtitle_ja: "2画像のピクセル差分検出ツール"
+subtitle_en: "Pixel-level Image Difference Detection Tool"
+
+description_ja: "2枚の画像をピクセル単位で比較し、視覚的な違いを可視化するセキュリティツール。QRコードの改ざん検出や証拠画像の検証などに活用可能。"
+description_en: "A security tool that compares two images at the pixel level and visualizes differences. Useful for detecting QR code tampering and verifying evidence images."
+
+category_ja:
+  - 画像解析
+  - フォレンジック
+category_en:
+  - Image Analysis
+  - Forensics
+
+difficulty: 2
+
+tags:
+  - image-comparison
+  - pixel-diff
+  - qr-code
+  - tampering-detection
+  - canvas-api
+
+repo_url: "https://github.com/ipusiron/image-diff-sec"
+demo_url: "https://ipusiron.github.io/image-diff-sec/"
+
+hub: true
+---
+-->
+
 # ImageDiffSec - 2画像のピクセル差分検出ツール
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/ipusiron/image-diff-sec?style=social)
