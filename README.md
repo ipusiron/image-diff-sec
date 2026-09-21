@@ -340,7 +340,6 @@ image-diff-sec/                     # 2枚の画像を画素単位で比べる�
 ├── .nojekyll                       # PagesのJekyll処理を無効化
 ├── assets/                         # READMEに載せる画像とサイトアイコン
 │   ├── favicon.svg                 # サイトアイコン（重なった2枚の画像と差分）
-│   ├── screenshot.png              # 旧版の画面（画像リンクからは参照しない）
 │   ├── screenshot2.png             # ライトテーマで文書サンプルを比べた結果
 │   ├── screenshot3.png             # 同じ状態のダークテーマ
 │   └── screenshot4.png             # 大きさの違う画像を位置合わせして比べた結果
