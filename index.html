@@ -2,56 +2,79 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ImageDiffSec - 2画像のピクセル差分検出ツール</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
+  <noscript>このツールを使うには、ブラウザーのJavaScriptを有効にしてください。</noscript>
   <header>
     <h1>ImageDiffSec</h1>
     <p>画像の差分を視覚的に比較・検出するセキュリティツール</p>
-    <button id="helpButton" class="help-button" aria-label="ヘルプ">
-      <span>❓</span>
-    </button>
-    <button id="darkModeToggle" class="dark-mode-toggle" aria-label="ダークモード切り替え">
-      <span class="light-icon">🌞</span>
-      <span class="dark-icon">🌙</span>
-    </button>
+    <div class="header-buttons">
+      <button type="button" id="helpButton" class="help-button" aria-label="ヘルプ">
+        <span>❓</span>
+      </button>
+      <button type="button" id="darkModeToggle" class="dark-mode-toggle" aria-label="ダークモード切り替え">
+        <span class="light-icon">🌞</span>
+        <span class="dark-icon">🌙</span>
+      </button>
+    </div>
   </header>
 
   <main>
     <section class="upload">
       <div class="upload-box">
         <h2>画像1</h2>
-        <div class="drop-zone" id="dropZone1">
+        <div class="drop-zone" id="dropZone1" aria-label="画像1のファイル選択とドロップ">
           <p>ここに画像をドラッグ&ドロップ<br>または</p>
-          <input type="file" id="image1" accept="image/*" />
+          <input type="file" id="image1" accept="image/png,image/jpeg,image/gif,image/webp" />
           <label for="image1" class="file-label">ファイルを選択</label>
         </div>
-        <button onclick="clearImage('image1', 'canvas1')">クリア</button>
-        <canvas id="canvas1">画像1プレビュー</canvas>
+        <button type="button" id="clear1" aria-label="画像1をクリア">クリア</button>
+        <canvas id="canvas1" hidden>画像1プレビュー</canvas>
+        <p id="canvas1Hash" class="hash"></p>
+        <button type="button" id="canvas1Copy" aria-label="画像1のSHA-256をコピー" disabled>SHA-256をコピー</button>
+        <p id="canvas1Notice" class="notice" role="status"></p>
       </div>
 
       <div class="upload-box">
         <h2>画像2</h2>
-        <div class="drop-zone" id="dropZone2">
+        <div class="drop-zone" id="dropZone2" aria-label="画像2のファイル選択とドロップ">
           <p>ここに画像をドラッグ&ドロップ<br>または</p>
-          <input type="file" id="image2" accept="image/*" />
+          <input type="file" id="image2" accept="image/png,image/jpeg,image/gif,image/webp" />
           <label for="image2" class="file-label">ファイルを選択</label>
         </div>
-        <button onclick="clearImage('image2', 'canvas2')">クリア</button>
-        <canvas id="canvas2">画像2プレビュー</canvas>
+        <button type="button" id="clear2" aria-label="画像2をクリア">クリア</button>
+        <canvas id="canvas2" hidden>画像2プレビュー</canvas>
+        <p id="canvas2Hash" class="hash"></p>
+        <button type="button" id="canvas2Copy" aria-label="画像2のSHA-256をコピー" disabled>SHA-256をコピー</button>
+        <p id="canvas2Notice" class="notice" role="status"></p>
       </div>
     </section>
 
     <section class="compare-control">
-      <button id="compareButton">画像を比較</button>
+      <label for="tolerance">許容差（0＝厳密に比較）</label>
+      <input type="range" id="tolerance" min="0" max="255" value="0">
+      <output id="toleranceValue" for="tolerance">0</output>
+      <p>JPEGは保存し直すだけで全体の画素が少しずつ変わる。そういう画像どうしを比べるときに上げる</p>
+      <button type="button" id="compareButton">画像を比較</button>
     </section>
 
     <section class="result">
+      <p id="statusMessage" role="status" aria-live="polite"></p>
+      <p id="errorMessage" role="alert"></p>
       <h2>差分表示</h2>
-      <canvas id="diffCanvas">差分プレビュー</canvas>
-      <p id="diffRate"></p>
+      <p id="matchResult"></p>
+      <p id="matchWarning" class="notice"></p>
+      <p id="diffRate" aria-live="polite"></p>
+      <p id="hashResult"></p>
+      <canvas id="diffCanvas" role="img" aria-label="差分の画像。まだ比較していません" hidden>差分プレビュー</canvas>
+      <div><button type="button" id="saveDiff" disabled>差分画像をPNGで保存</button></div>
     </section>
   </main>
 
@@ -62,10 +85,10 @@
     </footer>
 
   <!-- ヘルプモーダル -->
-  <div id="helpModal" class="modal">
+  <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
     <div class="modal-content">
-      <span class="modal-close" id="modalClose">&times;</span>
-      <h2>📚 ImageDiffSec ヘルプ</h2>
+      <button type="button" class="modal-close" id="modalClose" aria-label="ヘルプを閉じる">&times;</button>
+      <h2 id="helpTitle">📚 ImageDiffSecヘルプ</h2>
       <div class="modal-body">
         <h3>🔍 使い方</h3>
         <ol>
@@ -78,22 +101,22 @@
           <li><strong>画像の比較</strong>
             <ul>
               <li>両方の画像を読み込んだ後、「画像を比較」ボタンをクリック</li>
-              <li>差分がある箇所が赤色で表示されます</li>
+              <li>差分がある箇所を赤色で表示</li>
             </ul>
           </li>
           <li><strong>結果の確認</strong>
             <ul>
-              <li>差分率がパーセンテージで表示されます</li>
-              <li>差分率が高いほど、画像の違いが大きいことを意味します</li>
+              <li>異なる画素の実数と範囲を確認する</li>
+              <li>差分率の大小だけでは、改ざんの重さは決まらない</li>
             </ul>
           </li>
         </ol>
 
         <h3>⚠️ 注意事項</h3>
         <ul>
-          <li>比較する画像は<strong>同じサイズ</strong>である必要があります</li>
-          <li>大きすぎる画像（4096px以上）は自動的にリサイズされます</li>
-          <li>ブラウザ上で処理されるため、画像データはサーバーに送信されません</li>
+          <li>大きさが違うときは、小さいほうを大きいほうの中から探して重ねる。回転と拡大縮小には対応しない</li>
+          <li>4096pxを超える画像は縮小されるため、厳密な比較にはならない</li>
+          <li>処理はブラウザー内だけで行い、画像もハッシュもサーバーに送信しない</li>
         </ul>
 
         <h3>🛡 セキュリティ上の用途</h3>
@@ -105,13 +128,16 @@
 
         <h3>💡 ヒント</h3>
         <ul>
-          <li>差分率が0.00%の場合、両画像は完全に同一です</li>
-          <li>差分率が1%未満でも、重要な改ざんが含まれている可能性があります</li>
-          <li>クリアボタンで画像をリセットできます</li>
+          <li>「差分なし」と出るのは、差分が0画素のときだけである。1画素でも違えば「差分あり」と出る</li>
+          <li>許容差を上げると小さな色の違いを無視する。結果には使った許容差も表示する</li>
+          <li>SHA-256は元ファイルのバイト列を比較する。画素が一致してもメタデータなどが違うことがある</li>
+          <li>「差分画像をPNGで保存」で赤い差分と青い範囲枠を保存できる</li>
+          <li>位置合わせのスコアが0.90未満なら警告が出る。改ざんでもスコアが下がるため、失敗とは限らない</li>
+          <li>単色の切り出しは位置合わせ不能。クリアボタンで画像をリセットできる</li>
         </ul>
 
         <h3>🌙 ダークモード</h3>
-        <p>右上の🌞/🌙ボタンでダークモードを切り替えられます。設定はブラウザに保存されます。</p>
+        <p>ヘッダーの🌞/🌙ボタンでダークモードを切り替えられます。設定はブラウザーに保存されます。</p>
 
         <h3>🔗 関連情報</h3>
         <ul>
@@ -123,6 +149,9 @@
     </div>
   </div>
 
+  <script src="js/core/pixel-diff.js"></script>
+  <script src="js/core/template-match.js"></script>
+  <script src="js/core/hash.js"></script>
   <script src="js/image-processor.js"></script>
   <script src="js/ui-controller.js"></script>
   <script src="js/main.js"></script>

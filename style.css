@@ -1,27 +1,105 @@
+:root {
+  --page-bg: #f7f8fa;
+  --text: #333333;
+  --header-bg: #2b3e50;
+  --header-text: #ffffff;
+  --footer-link: #87ceeb;
+  --footer-link-hover: #add8e6;
+  --panel-bg: #ffffff;
+  --border: #cccccc;
+  --drop-bg: #f9f9f9;
+  --drop-text: #666666;
+  --drop-active: #e8f2ff;
+  --file-bg: #2b68b3;
+  --file-hover: #235a9c;
+  --button-text: #ffffff;
+  --clear-bg: #c82333;
+  --clear-hover: #b02a37;
+  --compare-bg: #1e7e34;
+  --compare-hover: #19692c;
+  --result-text: #c62828;
+  --link: #2b68b3;
+  --modal-bg: #fefefe;
+  --modal-header: #f5f5f5;
+  --modal-heading: #2b3e50;
+  --modal-close: #595959;
+  --modal-close-hover: #000000;
+  --modal-border: #888888;
+  --modal-divider: #e0e0e0;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --modal-shadow: rgba(0, 0, 0, 0.3);
+  --overlay: rgba(0, 0, 0, 0.5);
+  --header-border: rgba(255, 255, 255, 0.3);
+  --header-hover: rgba(255, 255, 255, 0.1);
+  --header-border-hover: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode {
+  --page-bg: #1a1a1a;
+  --text: #e0e0e0;
+  --header-bg: #0d1117;
+  --header-text: #e0e0e0;
+  --footer-link: #58a6ff;
+  --footer-link-hover: #79c0ff;
+  --panel-bg: #21262d;
+  --border: #30363d;
+  --drop-bg: #161b22;
+  --drop-text: #b1b1b1;
+  --drop-active: #1c2128;
+  --file-bg: #79b8ff;
+  --file-hover: #a5d0ff;
+  --button-text: #0d1117;
+  --clear-bg: #ff8a80;
+  --clear-hover: #ffb4ad;
+  --compare-bg: #7ee787;
+  --compare-hover: #a8efae;
+  --result-text: #ff8a80;
+  --link: #58a6ff;
+  --modal-bg: #21262d;
+  --modal-header: #161b22;
+  --modal-heading: #58a6ff;
+  --modal-close: #a9b1ba;
+  --modal-close-hover: #e0e0e0;
+  --modal-border: #30363d;
+  --modal-divider: #30363d;
+  --shadow: rgba(0, 0, 0, 0.5);
+  --header-border: rgba(255, 255, 255, 0.5);
+  --header-hover: rgba(255, 255, 255, 0.2);
+  --header-border-hover: rgba(255, 255, 255, 0.7);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #f7f8fa;
-  color: #333;
+  background-color: var(--page-bg);
+  color: var(--text);
 }
 
 header, footer {
-  background-color: #2b3e50;
-  color: white;
+  background-color: var(--header-bg);
+  color: var(--header-text);
   text-align: center;
   padding: 1rem;
 }
 
 footer a {
-  color: #87ceeb;
+  color: var(--footer-link);
   text-decoration: none;
   font-weight: bold;
   transition: color 0.3s ease;
 }
 
 footer a:hover {
-  color: #add8e6;
+  color: var(--footer-link-hover);
   text-decoration: underline;
 }
 
@@ -46,17 +124,18 @@ main {
 
 .upload-box {
   flex: 1 1 300px;
-  background: white;
+  min-width: 0;
+  background: var(--panel-bg);
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px var(--shadow);
   text-align: center;
 }
 
 canvas {
   max-width: 100%;
   margin-top: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border);
 }
 
 .compare-control {
@@ -64,53 +143,60 @@ canvas {
 }
 
 .result {
-  background: white;
+  background: var(--panel-bg);
   padding: 1rem;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px var(--shadow);
   text-align: center;
 }
 
 #diffRate {
   margin-top: 1rem;
   font-weight: bold;
-  color: #d33;
+  color: var(--result-text);
 }
 
 /* ドラッグ&ドロップエリア */
 .drop-zone {
-  border: 2px dashed #ccc;
+  border: 2px dashed var(--border);
   border-radius: 8px;
   padding: 2rem 1rem;
   text-align: center;
-  background-color: #f9f9f9;
+  background-color: var(--drop-bg);
   transition: all 0.3s ease;
   margin-bottom: 1rem;
 }
 
 .drop-zone.dragover {
-  border-color: #4a90e2;
-  background-color: #e8f2ff;
+  border-color: var(--file-bg);
+  background-color: var(--drop-active);
   transform: scale(1.02);
 }
 
 .drop-zone p {
   margin: 0 0 1rem 0;
-  color: #666;
+  color: var(--drop-text);
   font-size: 0.95rem;
 }
 
 /* ファイル入力を隠す */
 .drop-zone input[type="file"] {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* カスタムファイル選択ボタン */
 .file-label {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   padding: 0.5rem 1.5rem;
-  background-color: #4a90e2;
-  color: white;
+  background-color: var(--file-bg);
+  color: var(--button-text);
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
@@ -118,34 +204,36 @@ canvas {
 }
 
 .file-label:hover {
-  background-color: #357abd;
+  background-color: var(--file-hover);
 }
 
 /* ボタンのスタイル調整 */
 button {
+  min-width: 44px;
+  min-height: 44px;
   padding: 0.5rem 1rem;
   margin: 0.5rem;
   border: none;
   border-radius: 4px;
-  background-color: #dc3545;
-  color: white;
+  background-color: var(--clear-bg);
+  color: var(--button-text);
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background-color: #c82333;
+  background-color: var(--clear-hover);
 }
 
 #compareButton {
-  background-color: #28a745;
+  background-color: var(--compare-bg);
   font-size: 1.1rem;
   padding: 0.8rem 2rem;
 }
 
 #compareButton:hover {
-  background-color: #218838;
+  background-color: var(--compare-hover);
 }
 
 /* ダークモード切り替えボタン */
@@ -155,10 +243,10 @@ button:hover {
   top: 50%;
   transform: translateY(-50%);
   background-color: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--header-border);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   font-size: 1.2rem;
   display: flex;
@@ -170,8 +258,8 @@ button:hover {
 }
 
 .dark-mode-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--header-hover);
+  border-color: var(--header-border-hover);
 }
 
 .dark-mode-toggle .dark-icon {
@@ -184,46 +272,46 @@ header {
 
 /* ダークモード用スタイル */
 body.dark-mode {
-  background-color: #1a1a1a;
-  color: #e0e0e0;
+  background-color: var(--page-bg);
+  color: var(--text);
 }
 
 body.dark-mode header,
 body.dark-mode footer {
-  background-color: #0d1117;
+  background-color: var(--header-bg);
 }
 
 body.dark-mode .upload-box,
 body.dark-mode .result {
-  background-color: #21262d;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  background-color: var(--panel-bg);
+  box-shadow: 0 0 10px var(--overlay);
 }
 
 body.dark-mode .drop-zone {
-  background-color: #161b22;
-  border-color: #30363d;
+  background-color: var(--drop-bg);
+  border-color: var(--border);
 }
 
 body.dark-mode .drop-zone.dragover {
-  background-color: #1c2128;
-  border-color: #58a6ff;
+  background-color: var(--drop-active);
+  border-color: var(--link);
 }
 
 body.dark-mode .drop-zone p {
-  color: #b1b1b1;
+  color: var(--drop-text);
 }
 
 body.dark-mode canvas {
-  border-color: #30363d;
+  border-color: var(--border);
 }
 
 body.dark-mode .dark-mode-toggle {
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--header-border-hover);
 }
 
 body.dark-mode .dark-mode-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.7);
+  background-color: var(--header-hover);
+  border-color: var(--header-border-hover);
 }
 
 body.dark-mode .dark-mode-toggle .light-icon {
@@ -236,15 +324,15 @@ body.dark-mode .dark-mode-toggle .dark-icon {
 
 body.dark-mode h1,
 body.dark-mode h2 {
-  color: #e0e0e0;
+  color: var(--text);
 }
 
 body.dark-mode footer a {
-  color: #58a6ff;
+  color: var(--link);
 }
 
 body.dark-mode footer a:hover {
-  color: #79c0ff;
+  color: var(--footer-link-hover);
 }
 
 /* ヘルプボタン */
@@ -254,10 +342,10 @@ body.dark-mode footer a:hover {
   top: 50%;
   transform: translateY(-50%);
   background-color: transparent;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--header-border);
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   font-size: 1.2rem;
   display: flex;
@@ -266,26 +354,29 @@ body.dark-mode footer a:hover {
   transition: all 0.3s ease;
   padding: 0;
   margin: 0;
-  color: white;
+  color: var(--button-text);
 }
 
 .help-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--header-hover);
+  border-color: var(--header-border-hover);
+}
+
+.help-button, .dark-mode-toggle {
+  color: var(--header-text);
 }
 
 body.dark-mode .help-button {
-  border-color: rgba(255, 255, 255, 0.5);
+  border-color: var(--header-border-hover);
 }
 
 body.dark-mode .help-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.7);
+  background-color: var(--header-hover);
+  border-color: var(--header-border-hover);
 }
 
 /* モーダル */
 .modal {
-  display: none;
   position: fixed;
   z-index: 1000;
   left: 0;
@@ -293,29 +384,30 @@ body.dark-mode .help-button:hover {
   width: 100%;
   height: 100%;
   overflow: auto;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--overlay);
   backdrop-filter: blur(3px);
 }
 
 .modal-content {
-  background-color: #fefefe;
+  position: relative;
+  background-color: var(--modal-bg);
   margin: 2% auto;
   padding: 0;
-  border: 1px solid #888;
+  border: 1px solid var(--modal-border);
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px var(--modal-shadow);
 }
 
 .modal-content h2 {
   margin: 0;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e0e0e0;
-  background-color: #f5f5f5;
+  padding: 1rem 4.5rem 1rem 1.5rem;
+  border-bottom: 1px solid var(--text);
+  background-color: var(--modal-header);
   border-radius: 8px 8px 0 0;
 }
 
@@ -326,7 +418,7 @@ body.dark-mode .help-button:hover {
 }
 
 .modal-body h3 {
-  color: #2b3e50;
+  color: var(--modal-heading);
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
 }
@@ -345,7 +437,7 @@ body.dark-mode .help-button:hover {
 }
 
 .modal-body a {
-  color: #4a90e2;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -354,8 +446,12 @@ body.dark-mode .help-button:hover {
 }
 
 .modal-close {
-  color: #aaa;
-  float: right;
+  color: var(--modal-close);
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 0;
+  background: var(--modal-header);
   font-size: 28px;
   font-weight: bold;
   cursor: pointer;
@@ -365,35 +461,115 @@ body.dark-mode .help-button:hover {
 
 .modal-close:hover,
 .modal-close:focus {
-  color: #000;
+  color: var(--modal-close-hover);
+  background: var(--modal-header);
 }
 
 /* ダークモードのモーダル */
 body.dark-mode .modal-content {
-  background-color: #21262d;
-  border-color: #30363d;
-  color: #e0e0e0;
+  background-color: var(--panel-bg);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 body.dark-mode .modal-content h2 {
-  background-color: #161b22;
-  border-bottom-color: #30363d;
-  color: #e0e0e0;
+  background-color: var(--drop-bg);
+  border-bottom-color: var(--border);
+  color: var(--text);
 }
 
 body.dark-mode .modal-body h3 {
-  color: #58a6ff;
+  color: var(--link);
 }
 
 body.dark-mode .modal-body a {
-  color: #58a6ff;
+  color: var(--link);
 }
 
 body.dark-mode .modal-close {
-  color: #8b949e;
+  color: var(--modal-close);
 }
 
 body.dark-mode .modal-close:hover,
 body.dark-mode .modal-close:focus {
-  color: #e0e0e0;
+  color: var(--text);
+}
+
+/* 追加操作と結果。空の通知は余白も作らない。 */
+.hash, .notice {
+  overflow-wrap: anywhere;
+}
+
+#diffRate, #hashResult {
+  white-space: pre-line;
+}
+
+#statusMessage:empty, #errorMessage:empty, .notice:empty, .hash:empty,
+#matchResult:empty, #hashResult:empty, #diffRate:empty {
+  display: none;
+}
+
+#errorMessage, .notice {
+  color: var(--result-text);
+}
+
+#canvas1Copy, #canvas2Copy, #saveDiff {
+  background: var(--file-bg);
+}
+
+#canvas1Copy:hover, #canvas2Copy:hover, #saveDiff:hover {
+  background: var(--file-hover);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:focus-visible, input:focus-visible + .file-label,
+input[type="range"]:focus-visible, a:focus-visible {
+  outline: 3px solid var(--link);
+  outline-offset: 3px;
+}
+
+#tolerance {
+  max-width: 100%;
+  min-height: 44px;
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 1rem;
+  }
+
+  .header-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .help-button, .dark-mode-toggle {
+    position: static;
+    transform: none;
+  }
+
+  .upload-box {
+    flex-basis: 100%;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+  }
+
+  .drop-zone.dragover {
+    transform: none;
+  }
 }

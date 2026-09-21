@@ -22,12 +22,10 @@ function setupDropZone(dropZoneId, inputId, canvasId) {
     dropZone.classList.remove('dragover');
     
     const files = e.dataTransfer.files;
-    if (files.length > 0 && files[0].type.startsWith('image/')) {
-      // FileListをinput要素に設定できないため、直接loadImageを呼ぶ
+    if (files.length > 0) {
+      // input経由と同じ形式の検証を使う。
       const file = files[0];
       window.ImageProcessor.handleFileSelect(file, canvasId);
-    } else if (files.length > 0) {
-      alert('画像ファイルを選択してください。');
     }
   });
   
@@ -35,6 +33,14 @@ function setupDropZone(dropZoneId, inputId, canvasId) {
   input.addEventListener('change', () => {
     if (input.files.length > 0) {
       window.ImageProcessor.handleFileSelect(input.files[0], canvasId);
+    }
+  });
+
+  // 視覚的に隠したinputもEnterとSpaceで選択を開く。
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      input.click();
     }
   });
 }
@@ -45,7 +51,13 @@ function setupDarkMode() {
   const body = document.body;
   
   // 保存されている設定を読み込む
-  const savedDarkMode = localStorage.getItem('darkMode');
+  let savedDarkMode = null;
+  try {
+    const stored = localStorage.getItem('darkMode');
+    if (stored === 'true' || stored === 'false') savedDarkMode = stored;
+  } catch {
+    // 保存領域が使えなくても、画面上での切り替えは続ける。
+  }
   if (savedDarkMode === 'true') {
     body.classList.add('dark-mode');
   }
@@ -55,7 +67,6 @@ function setupDarkMode() {
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (prefersDarkMode) {
       body.classList.add('dark-mode');
-      localStorage.setItem('darkMode', 'true');
     }
   }
   
@@ -63,7 +74,11 @@ function setupDarkMode() {
   darkModeToggle.addEventListener('click', () => {
     body.classList.toggle('dark-mode');
     const isDarkMode = body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode.toString());
+    try {
+      localStorage.setItem('darkMode', isDarkMode.toString());
+    } catch {
+      // 保存できない環境では現在のページだけに適用する。
+    }
   });
 }
 
@@ -73,38 +88,56 @@ function setupHelpModal() {
   const modal = document.getElementById('helpModal');
   const modalClose = document.getElementById('modalClose');
   
+  const background = document.querySelectorAll("header, main, footer");
+  let previousOverflow = "";
+  const close = () => {
+    modal.hidden = true;
+    document.body.style.overflow = previousOverflow;
+    background.forEach(element => { element.inert = false; });
+    helpButton.focus();
+  };
+
   // ヘルプボタンクリックでモーダル表示
-  helpButton.addEventListener('click', () => {
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden'; // 背景のスクロールを無効化
+  helpButton.addEventListener("click", () => {
+    previousOverflow = document.body.style.overflow;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    background.forEach(element => { element.inert = true; });
+    modalClose.focus();
   });
-  
-  // 閉じるボタンクリックでモーダル非表示
-  modalClose.addEventListener('click', () => {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto'; // スクロールを再有効化
+  modalClose.addEventListener("click", close);
+  modal.addEventListener("click", event => {
+    if (event.target === modal) close();
   });
-  
-  // モーダル外クリックでも閉じる
-  window.addEventListener('click', (event) => {
-    if (event.target === modal) {
-      modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
+  document.addEventListener("keydown", event => {
+    if (modal.hidden) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      close();
+    } else if (event.key === "Tab") {
+      const focusable = Array.from(modal.querySelectorAll('button, a[href], [tabindex="0"]'));
+      const current = focusable.indexOf(document.activeElement);
+      if (event.shiftKey && current <= 0) {
+        event.preventDefault();
+        focusable.at(-1).focus();
+      } else if (!event.shiftKey && (current === focusable.length - 1 || current < 0)) {
+        event.preventDefault();
+        focusable[0].focus();
+      }
     }
   });
-  
-  // ESCキーでも閉じる
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.style.display === 'block') {
-      modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-    }
-  });
+}
+
+// エラーと進捗を画面内へ表示する。
+function showMessage(text, error = false) {
+  document.getElementById("statusMessage").textContent = error ? "" : text;
+  document.getElementById("errorMessage").textContent = error ? text : "";
 }
 
 // エクスポート（グローバルスコープに公開）
 window.UIController = {
   setupDropZone,
   setupDarkMode,
-  setupHelpModal
+  setupHelpModal,
+  showMessage
 };
