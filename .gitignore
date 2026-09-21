@@ -1,6 +1,3 @@
-# .github/workflows/ is ignored
-.github/workflows/
-
 # OS files
 .DS_Store
 Thumbs.db

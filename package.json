@@ -1,0 +1,7 @@
+{
+  "name": "image-diff-sec",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}
