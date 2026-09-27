@@ -38,10 +38,14 @@ function comparePixels(a, b, width, height, tolerance = 0) {
   return { diffCount, total: width * height, bbox, mask };
 }
 
+// 率・結果の文は表示層で訳すため、文字列ではなく { key, params } を返す。
+// 閾値0.01%と小数2桁は従来どおり変えない。
 function formatRate(diffCount, total) {
-  if (diffCount === 0) return "0%";
+  if (diffCount === 0) return { key: "rate.zero", params: {} };
   const percent = diffCount / total * 100;
-  return percent < 0.01 ? "0.01%未満" : percent.toFixed(2) + "%";
+  return percent < 0.01
+    ? { key: "rate.below", params: {} }
+    : { key: "rate.value", params: { percent: percent.toFixed(2) } };
 }
 
 function formatCount(n) {
@@ -63,17 +67,27 @@ function cropRegion(data, width, x, y, w, h) {
   return out;
 }
 
+// 表示に必要な部品だけを返す。訳した文字列を差し込み値に入れない（rateも生のキーで持つ）。
 function describeResult(result) {
   const { diffCount, total, bbox, tolerance = 0 } = result;
-  let description = diffCount === 0
-    ? `差分なし: ${formatCount(total)} ピクセルすべてが一致`
-    : `差分あり: ${formatCount(diffCount)} / ${formatCount(total)} ピクセル（${formatRate(diffCount, total)}）`;
-  if (tolerance !== 0) description += `（許容差 ${tolerance} で比較）`;
-  if (bbox) {
-    description += `\n差分の範囲: x ${bbox.minX}〜${bbox.maxX}, y ${bbox.minY}〜${bbox.maxY}` +
-      `（${bbox.width}×${bbox.height} ピクセル）`;
-  }
-  return description;
+  const summary = diffCount === 0
+    ? { key: "diff.none", params: { total: formatCount(total) } }
+    : {
+      key: "diff.found",
+      params: { count: formatCount(diffCount), total: formatCount(total) },
+      rate: formatRate(diffCount, total)
+    };
+  return {
+    summary,
+    tolerance: tolerance === 0 ? null : { key: "diff.tolerance", params: { tolerance } },
+    bbox: bbox === null || bbox === undefined ? null : {
+      key: "diff.bbox",
+      params: {
+        minX: bbox.minX, maxX: bbox.maxX, minY: bbox.minY, maxY: bbox.maxY,
+        width: bbox.width, height: bbox.height
+      }
+    }
+  };
 }
 
 if (typeof module !== "undefined" && module.exports) {

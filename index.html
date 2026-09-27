@@ -6,20 +6,40 @@
     content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" data-i18n-content="app.description"
+    content="2枚の画像をピクセル単位で比較し、視覚的な違いを可視化するセキュリティツール。QRコードの改ざん検出や証拠画像の検証などに活用可能。">
+  <meta name="keywords" data-i18n-content="app.keywords"
+    content="画像差分, ピクセル比較, 改ざん検出, QRコード, フォレンジック, セキュリティツール, Canvas API">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ipusiron.github.io/image-diff-sec/">
+  <meta property="og:site_name" data-i18n-content="app.siteName" content="ImageDiffSec">
+  <meta property="og:title" data-i18n-content="app.title" content="ImageDiffSec - 2画像のピクセル差分検出ツール">
+  <meta property="og:description" data-i18n-content="app.ogDescription"
+    content="2枚の画像の違いを画素単位で可視化し、改ざんの有無を確かめられるブラウザー完結のツール。">
+  <meta property="og:image" content="https://ipusiron.github.io/image-diff-sec/assets/screenshot2.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" data-i18n-content="app.title" content="ImageDiffSec - 2画像のピクセル差分検出ツール">
+  <meta name="twitter:description" data-i18n-content="app.ogDescription"
+    content="2枚の画像の違いを画素単位で可視化し、改ざんの有無を確かめられるブラウザー完結のツール。">
+  <meta name="twitter:image" content="https://ipusiron.github.io/image-diff-sec/assets/screenshot2.png">
   <title>ImageDiffSec - 2画像のピクセル差分検出ツール</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 </head>
 <body>
-  <noscript>このツールを使うには、ブラウザーのJavaScriptを有効にしてください。</noscript>
+  <noscript>このツールを使うには、ブラウザーのJavaScriptを有効にしてください。 / To use this tool, enable JavaScript in your browser.</noscript>
   <header>
     <h1>ImageDiffSec</h1>
-    <p>画像の差分を視覚的に比較・検出するセキュリティツール</p>
+    <p data-i18n="app.tagline">画像の差分を視覚的に比較・検出するセキュリティツール</p>
     <div class="header-buttons">
-      <button type="button" id="helpButton" class="help-button" aria-label="ヘルプ">
+      <button type="button" id="langToggle" class="lang-toggle" data-i18n="app.langButton"
+        data-i18n-aria-label="app.langAria" aria-label="言語を切り替える">English</button>
+      <button type="button" id="helpButton" class="help-button"
+        data-i18n-aria-label="app.helpAria" aria-label="ヘルプ">
         <span>❓</span>
       </button>
-      <button type="button" id="darkModeToggle" class="dark-mode-toggle" aria-label="ダークモード切り替え">
+      <button type="button" id="darkModeToggle" class="dark-mode-toggle"
+        data-i18n-aria-label="app.darkAria" aria-label="ダークモード切り替え">
         <span class="light-icon">🌞</span>
         <span class="dark-icon">🌙</span>
       </button>
@@ -29,126 +49,144 @@
   <main>
     <section class="upload">
       <div class="upload-box">
-        <h2>画像1</h2>
-        <div class="drop-zone" id="dropZone1" aria-label="画像1のファイル選択とドロップ">
-          <p>ここに画像をドラッグ&ドロップ<br>または</p>
+        <h2 data-i18n="upload.image1">画像1</h2>
+        <div class="drop-zone" id="dropZone1"
+          data-i18n-aria-label="upload.dropAria1" aria-label="画像1のファイル選択とドロップ">
+          <p><span data-i18n="upload.dropHint">ここに画像をドラッグ&ドロップ</span><br><span data-i18n="upload.dropOr">または</span></p>
           <input type="file" id="image1" accept="image/png,image/jpeg,image/gif,image/webp" />
-          <label for="image1" class="file-label">ファイルを選択</label>
+          <label for="image1" class="file-label" data-i18n="upload.choose">ファイルを選択</label>
         </div>
-        <button type="button" id="clear1" aria-label="画像1をクリア">クリア</button>
-        <canvas id="canvas1" hidden>画像1プレビュー</canvas>
+        <button type="button" id="clear1" data-i18n="upload.clear"
+          data-i18n-aria-label="upload.clearAria1" aria-label="画像1をクリア">クリア</button>
+        <canvas id="canvas1" data-i18n="upload.canvas1" hidden>画像1プレビュー</canvas>
         <p id="canvas1Hash" class="hash"></p>
-        <button type="button" id="canvas1Copy" aria-label="画像1のSHA-256をコピー" disabled>SHA-256をコピー</button>
+        <button type="button" id="canvas1Copy" data-i18n="upload.copyHash" disabled
+          data-i18n-aria-label="upload.copyAria1" aria-label="画像1のSHA-256をコピー">SHA-256をコピー</button>
         <p id="canvas1Notice" class="notice" role="status"></p>
       </div>
 
       <div class="upload-box">
-        <h2>画像2</h2>
-        <div class="drop-zone" id="dropZone2" aria-label="画像2のファイル選択とドロップ">
-          <p>ここに画像をドラッグ&ドロップ<br>または</p>
+        <h2 data-i18n="upload.image2">画像2</h2>
+        <div class="drop-zone" id="dropZone2"
+          data-i18n-aria-label="upload.dropAria2" aria-label="画像2のファイル選択とドロップ">
+          <p><span data-i18n="upload.dropHint">ここに画像をドラッグ&ドロップ</span><br><span data-i18n="upload.dropOr">または</span></p>
           <input type="file" id="image2" accept="image/png,image/jpeg,image/gif,image/webp" />
-          <label for="image2" class="file-label">ファイルを選択</label>
+          <label for="image2" class="file-label" data-i18n="upload.choose">ファイルを選択</label>
         </div>
-        <button type="button" id="clear2" aria-label="画像2をクリア">クリア</button>
-        <canvas id="canvas2" hidden>画像2プレビュー</canvas>
+        <button type="button" id="clear2" data-i18n="upload.clear"
+          data-i18n-aria-label="upload.clearAria2" aria-label="画像2をクリア">クリア</button>
+        <canvas id="canvas2" data-i18n="upload.canvas2" hidden>画像2プレビュー</canvas>
         <p id="canvas2Hash" class="hash"></p>
-        <button type="button" id="canvas2Copy" aria-label="画像2のSHA-256をコピー" disabled>SHA-256をコピー</button>
+        <button type="button" id="canvas2Copy" data-i18n="upload.copyHash" disabled
+          data-i18n-aria-label="upload.copyAria2" aria-label="画像2のSHA-256をコピー">SHA-256をコピー</button>
         <p id="canvas2Notice" class="notice" role="status"></p>
       </div>
     </section>
 
     <section class="compare-control">
-      <label for="tolerance">許容差（0＝厳密に比較）</label>
+      <label for="tolerance" data-i18n="compare.toleranceLabel">許容差（0＝厳密に比較）</label>
       <input type="range" id="tolerance" min="0" max="255" value="0">
       <output id="toleranceValue" for="tolerance">0</output>
-      <p>JPEGは保存し直すだけで全体の画素が少しずつ変わる。そういう画像どうしを比べるときに上げる</p>
-      <button type="button" id="compareButton">画像を比較</button>
+      <p data-i18n="compare.toleranceHint">JPEGは保存し直すだけで全体の画素が少しずつ変わる。そういう画像どうしを比べるときに上げる</p>
+      <button type="button" id="compareButton" data-i18n="compare.button">画像を比較</button>
     </section>
 
     <section class="result">
       <p id="statusMessage" role="status" aria-live="polite"></p>
       <p id="errorMessage" role="alert"></p>
-      <h2>差分表示</h2>
+      <h2 data-i18n="result.heading">差分表示</h2>
       <p id="matchResult"></p>
       <p id="matchWarning" class="notice"></p>
       <p id="diffRate" aria-live="polite"></p>
       <p id="hashResult"></p>
-      <canvas id="diffCanvas" role="img" aria-label="差分の画像。まだ比較していません" hidden>差分プレビュー</canvas>
-      <div><button type="button" id="saveDiff" disabled>差分画像をPNGで保存</button></div>
+      <canvas id="diffCanvas" role="img" aria-label="差分の画像。まだ比較していません"
+        data-i18n="result.canvasFallback" hidden>差分プレビュー</canvas>
+      <div><button type="button" id="saveDiff" data-i18n="result.save" disabled>差分画像をPNGで保存</button></div>
     </section>
   </main>
 
 	<footer class="app-footer">
       <div class="footer">
-        🔗 GitHubリポジトリはこちら（<a href="https://github.com/ipusiron/image-diff-sec" target="_blank" rel="noopener noreferrer">ipusiron/image-diff-sec</a>）
+        <span data-i18n="footer.repo">🔗 GitHubリポジトリはこちら（</span><a
+          href="https://github.com/ipusiron/image-diff-sec" target="_blank"
+          rel="noopener noreferrer">ipusiron/image-diff-sec</a><span data-i18n="footer.repoEnd">）</span>
       </div>
     </footer>
 
   <!-- ヘルプモーダル -->
   <div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
     <div class="modal-content">
-      <button type="button" class="modal-close" id="modalClose" aria-label="ヘルプを閉じる">&times;</button>
-      <h2 id="helpTitle">📚 ImageDiffSecヘルプ</h2>
+      <button type="button" class="modal-close" id="modalClose"
+        data-i18n-aria-label="help.closeAria" aria-label="ヘルプを閉じる">&times;</button>
+      <h2 id="helpTitle" data-i18n="help.title">📚 ImageDiffSecヘルプ</h2>
       <div class="modal-body">
-        <h3>🔍 使い方</h3>
+        <h3 data-i18n="help.usageHeading">🔍 使い方</h3>
         <ol>
-          <li><strong>画像の読み込み</strong>
+          <li><strong data-i18n="help.usageLoad">画像の読み込み</strong>
             <ul>
-              <li>「ファイルを選択」ボタンをクリック</li>
-              <li>または、点線枠内に画像をドラッグ&ドロップ</li>
+              <li data-i18n="help.usageLoad1">「ファイルを選択」ボタンをクリック</li>
+              <li data-i18n="help.usageLoad2">または、点線枠内に画像をドラッグ&ドロップ</li>
             </ul>
           </li>
-          <li><strong>画像の比較</strong>
+          <li><strong data-i18n="help.usageCompare">画像の比較</strong>
             <ul>
-              <li>両方の画像を読み込んだ後、「画像を比較」ボタンをクリック</li>
-              <li>差分がある箇所を赤色で表示</li>
+              <li data-i18n="help.usageCompare1">両方の画像を読み込んだ後、「画像を比較」ボタンをクリック</li>
+              <li data-i18n="help.usageCompare2">差分がある箇所を赤色で表示</li>
             </ul>
           </li>
-          <li><strong>結果の確認</strong>
+          <li><strong data-i18n="help.usageCheck">結果の確認</strong>
             <ul>
-              <li>異なる画素の実数と範囲を確認する</li>
-              <li>差分率の大小だけでは、改ざんの重さは決まらない</li>
+              <li data-i18n="help.usageCheck1">異なる画素の実数と範囲を確認する</li>
+              <li data-i18n="help.usageCheck2">差分率の大小だけでは、改ざんの重さは決まらない</li>
             </ul>
           </li>
         </ol>
 
-        <h3>⚠️ 注意事項</h3>
+        <h3 data-i18n="help.notesHeading">⚠️ 注意事項</h3>
         <ul>
-          <li>大きさが違うときは、小さいほうを大きいほうの中から探して重ねる。回転と拡大縮小には対応しない</li>
-          <li>4096pxを超える画像は縮小されるため、厳密な比較にはならない</li>
-          <li>処理はブラウザー内だけで行い、画像もハッシュもサーバーに送信しない</li>
+          <li data-i18n="help.notes1">大きさが違うときは、小さいほうを大きいほうの中から探して重ねる。回転と拡大縮小には対応しない</li>
+          <li data-i18n="help.notes2">4096pxを超える画像は縮小されるため、厳密な比較にはならない</li>
+          <li data-i18n="help.notes3">処理はブラウザー内だけで行い、画像もハッシュもサーバーに送信しない</li>
         </ul>
 
-        <h3>🛡 セキュリティ上の用途</h3>
+        <h3 data-i18n="help.securityHeading">🛡 セキュリティ上の用途</h3>
         <ul>
-          <li><strong>QRコードの改ざん検出</strong>：悪意あるリンクへの差し替えを検出</li>
-          <li><strong>文書の偽造チェック</strong>：契約書や証明書の改ざんを発見</li>
-          <li><strong>フィッシングサイトの検証</strong>：本物と偽物の微細な違いを検出</li>
+          <li><strong data-i18n="help.securityQr">QRコードの改ざん検出</strong><span
+            data-i18n="help.securityQrDesc">：悪意あるリンクへの差し替えを検出</span></li>
+          <li><strong data-i18n="help.securityDoc">文書の偽造チェック</strong><span
+            data-i18n="help.securityDocDesc">：契約書や証明書の改ざんを発見</span></li>
+          <li><strong data-i18n="help.securityPhish">フィッシングサイトの検証</strong><span
+            data-i18n="help.securityPhishDesc">：本物と偽物の微細な違いを検出</span></li>
         </ul>
 
-        <h3>💡 ヒント</h3>
+        <h3 data-i18n="help.tipsHeading">💡 ヒント</h3>
         <ul>
-          <li>「差分なし」と出るのは、差分が0画素のときだけである。1画素でも違えば「差分あり」と出る</li>
-          <li>許容差を上げると小さな色の違いを無視する。結果には使った許容差も表示する</li>
-          <li>SHA-256は元ファイルのバイト列を比較する。画素が一致してもメタデータなどが違うことがある</li>
-          <li>「差分画像をPNGで保存」で赤い差分と青い範囲枠を保存できる</li>
-          <li>位置合わせのスコアが0.90未満なら警告が出る。改ざんでもスコアが下がるため、失敗とは限らない</li>
-          <li>単色の切り出しは位置合わせ不能。クリアボタンで画像をリセットできる</li>
+          <li data-i18n="help.tips1">「差分なし」と出るのは、差分が0画素のときだけである。1画素でも違えば「差分あり」と出る</li>
+          <li data-i18n="help.tips2">許容差を上げると小さな色の違いを無視する。結果には使った許容差も表示する</li>
+          <li data-i18n="help.tips3">SHA-256は元ファイルのバイト列を比較する。画素が一致してもメタデータなどが違うことがある</li>
+          <li data-i18n="help.tips4">「差分画像をPNGで保存」で赤い差分と青い範囲枠を保存できる</li>
+          <li data-i18n="help.tips5">位置合わせのスコアが0.90未満なら警告が出る。改ざんでもスコアが下がるため、失敗とは限らない</li>
+          <li data-i18n="help.tips6">単色の切り出しは位置合わせ不能。クリアボタンで画像をリセットできる</li>
         </ul>
 
-        <h3>🌙 ダークモード</h3>
-        <p>ヘッダーの🌞/🌙ボタンでダークモードを切り替えられます。設定はブラウザーに保存されます。</p>
+        <h3 data-i18n="help.darkHeading">🌙 ダークモード</h3>
+        <p data-i18n="help.darkBody">ヘッダーの🌞/🌙ボタンでダークモードを切り替えられます。設定はブラウザーに保存されます。</p>
 
-        <h3>🔗 関連情報</h3>
+        <h3 data-i18n="help.langHeading">🌐 表示言語</h3>
+        <p data-i18n="help.langBody">ヘッダーの「English」ボタンで日本語と英語を切り替えられます。URLに?lang=enや?lang=jaを付けても指定でき、選んだ言語はブラウザーに保存されます。</p>
+
+        <h3 data-i18n="help.relatedHeading">🔗 関連情報</h3>
         <ul>
-          <li><a href="https://github.com/ipusiron/image-diff-sec" target="_blank" rel="noopener noreferrer">GitHubリポジトリ</a></li>
-          <li>ライセンス: MIT License</li>
-          <li>作成者: ipusiron</li>
+          <li><a href="https://github.com/ipusiron/image-diff-sec" target="_blank" rel="noopener noreferrer"
+            data-i18n="help.relatedRepo">GitHubリポジトリ</a></li>
+          <li data-i18n="help.relatedLicense">ライセンス: MIT License</li>
+          <li data-i18n="help.relatedAuthor">作成者: ipusiron</li>
         </ul>
       </div>
     </div>
   </div>
 
+  <script src="js/i18n.js"></script>
   <script src="js/core/pixel-diff.js"></script>
   <script src="js/core/template-match.js"></script>
   <script src="js/core/hash.js"></script>

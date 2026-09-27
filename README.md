@@ -36,6 +36,8 @@ hub: true
 
 # ImageDiffSec - 2画像のピクセル差分検出ツール
 
+[English](README.en.md) · 日本語
+
 ![GitHub Repo stars](https://img.shields.io/github/stars/ipusiron/image-diff-sec?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/ipusiron/image-diff-sec?style=social)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ipusiron/image-diff-sec)
@@ -79,6 +81,7 @@ hub: true
 - 元ファイルのSHA-256を表示・コピーし、ファイルの同一性を確認
 - 赤い差分と青い範囲枠を付けたPNGを保存
 - ドラッグ&ドロップ、キーボード操作、ライト・ダーク表示に対応
+- 日本語と英語の切り替えに対応。結果や通知が出ている状態で切り替えても内容は消えない
 
 ---
 
@@ -225,6 +228,8 @@ NCCが吸収できるのは、明るさとコントラストの一様な変化�
 - **画素比較**: RGBA4成分、許容差0〜255。同一サイズの比較は画素数に比例
 - **位置合わせ**: NCCの多段探索、上位5候補、0.90未満は警告。単色や包含関係がない画像は比較せず通知
 - **表示・保存**: 差分の実数・率・範囲・位置とスコア・SHA-256、差分PNG
+- **表示言語**: 日本語と英語。`?lang=ja`／`?lang=en`、保存した選択、ブラウザーの設定の順で決定。
+  画面の文言は`js/i18n.js`の辞書にまとめ、純粋なロジックは`{ key, params }`だけを返す
 - **メモリと時間**: ブラウザー内で画像と縮小段の配列を保持。大きい画像や探索範囲では時間とメモリ使用量が増加
 - **動作確認**: Chromiumで1000×1000の原本と500×500の切り出しを比較し、4段の進捗更新を確認
 
@@ -289,7 +294,7 @@ QR生成用のqrcode-generatorは同梱版を使います。
 - **入力の確認**: PNG・JPEG・GIF・WebPだけを受け付け、未読込や読込失敗は画面へ通知
 - **描画**: 結果やメッセージにtextContentを使用。元ファイルの内容をHTMLとして実行しない
 - **リンク**: 別タブのリンクにrel="noopener noreferrer"を付与
-- **保存**: テーマ設定のみlocalStorageに保存。画像・ハッシュは保存しない
+- **保存**: テーマ設定と表示言語の選択のみlocalStorageに保存。画像・ハッシュは保存しない
 
 metaのCSPではframe-ancestorsを指定できず、クリックジャッキングは防げません。
 必要な配信環境ではHTTPレスポンスヘッダーで対策してください。
@@ -309,6 +314,8 @@ GitHub Actionsがpushとpull_requestのたびに同じテストを実行しま�
 RGBA比較8例、率の表示11例、合成模様7例、同梱画像6枚と切り出し6例を固定期待値で検証します。
 READMEのサンプル表も画像から再計算し、画像参照・YAML・全ファイルのツリーを照合します。
 CSP・純粋関数・配色のコントラスト・行長・同梱配布物のSHA-256も検証対象です。
+日英の辞書についても、キーの集合・差し込みの名前・HTMLが指すキー・訳し忘れの和文・
+状態で変わる属性に`data-i18n`を付けていないことを検証します。
 
 ---
 
@@ -350,11 +357,13 @@ image-diff-sec/                     # 2枚の画像を画素単位で比べる�
 │   │   ├── hash.js                 # ハッシュ値の16進表記への変換
 │   │   ├── pixel-diff.js           # 画素の比較・範囲・結果の文の組み立て
 │   │   └── template-match.js       # 多段の縮小探索による位置合わせ
+│   ├── i18n.js                     # 日本語と英語の文言と切り替えの仕組み
 │   ├── image-processor.js          # 画像の読み込み・比較・差分の描画
 │   ├── main.js                     # 起動時の組み立て
 │   └── ui-controller.js            # ドロップ・テーマ・モーダル・メッセージ欄
 ├── LICENSE                         # 本ツールのMITライセンス
 ├── package.json                    # 依存なしのnpm test定義
+├── README.en.md                    # 英語版のドキュメント
 ├── README.md                       # 本ドキュメント
 ├── samples/                        # 動作確認用のサンプル画像
 │   ├── doc_edited.png              # 内容を書き換えた書類（差分121画素）
@@ -368,6 +377,7 @@ image-diff-sec/                     # 2枚の画像を画素単位で比べる�
 │   ├── contrast.test.js            # 文字色と面のコントラストの検証
 │   ├── format.test.js              # 行長と読みやすさの検証
 │   ├── html.test.js                # CSP・ARIA・外部読み込みなしの検証
+│   ├── i18n.test.js                # 辞書・data-i18n・訳し忘れの検証
 │   ├── pixel-diff.test.js          # 画素の比較と結果の文の検証
 │   ├── readme.test.js              # 表・画像・ツリー・YAMLの検証
 │   ├── samples.test.js             # 同梱サンプルの差分・範囲・SHA-256の検証

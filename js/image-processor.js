@@ -3,9 +3,81 @@
 // グローバル変数
 let objectUrls = new Map(); // URL管理用
 const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
-const imageStates = { canvas1: { loaded: false }, canvas2: { loaded: false } };
+const imageStates = { canvas1: emptyImageState(), canvas2: emptyImageState() };
 let comparing = false;
 let lastComparison = null;
+// 画面に出ている文言は { key, params } で覚え、言語の切り替えで訳し直す。訳した文字列は状態に入れない。
+let matchState = null;
+let resultState = null;
+
+function emptyImageState() {
+  return { loaded: false, hash: null, notice: null };
+}
+
+// 通知・ハッシュ表示・位置合わせ・結果を、保持した状態から描き直す。
+function renderNotice(canvasId) {
+  const notice = imageStates[canvasId].notice;
+  document.getElementById(canvasId + "Notice").textContent =
+    notice ? window.I18n.t(notice.key, notice.params) : "";
+}
+
+function renderHashLabel(canvasId) {
+  const state = imageStates[canvasId];
+  const label = document.getElementById(canvasId + "Hash");
+  if (!state.loaded) {
+    label.textContent = "";
+    label.title = "";
+    return;
+  }
+  label.textContent = state.hash
+    ? window.I18n.t("hash.prefix", { prefix: state.hash.slice(0, 16) })
+    : window.I18n.t("hash.unavailable");
+  label.title = state.hash || "";
+}
+
+function renderMatch() {
+  document.getElementById("matchResult").textContent =
+    matchState ? window.I18n.t("match.overlay", matchState.params) : "";
+  document.getElementById("matchWarning").textContent =
+    matchState && matchState.lowScore ? window.I18n.t("match.lowScore") : "";
+}
+
+// describeResult() が返した部品を、表示の直前に訳して1つの文にする。
+function describeText(parts) {
+  const params = { ...parts.summary.params };
+  if (parts.summary.rate) {
+    params.rate = window.I18n.t(parts.summary.rate.key, parts.summary.rate.params);
+  }
+  let text = window.I18n.t(parts.summary.key, params);
+  if (parts.tolerance) text += window.I18n.t(parts.tolerance.key, parts.tolerance.params);
+  if (parts.bbox) text += "\n" + window.I18n.t(parts.bbox.key, parts.bbox.params);
+  return text;
+}
+
+function renderResult() {
+  const diffCanvas = document.getElementById("diffCanvas");
+  if (!resultState) {
+    document.getElementById("diffRate").textContent = "";
+    document.getElementById("hashResult").textContent = "";
+    diffCanvas.setAttribute("aria-label", window.I18n.t("result.canvasAriaEmpty"));
+    return;
+  }
+  document.getElementById("diffRate").textContent = describeText(resultState.parts);
+  document.getElementById("hashResult").textContent = window.I18n.t(resultState.hash.key) +
+    (resultState.hash.extraKey ? "\n" + window.I18n.t(resultState.hash.extraKey) : "");
+  diffCanvas.setAttribute("aria-label",
+    window.I18n.t("result.canvasAria", { count: formatCount(resultState.diffCount) }));
+}
+
+// 言語を切り替えたときは、表示中の文言だけを訳し直す。比較や位置合わせはやり直さない。
+function renderTexts() {
+  for (const canvasId of ["canvas1", "canvas2"]) {
+    renderNotice(canvasId);
+    renderHashLabel(canvasId);
+  }
+  renderMatch();
+  renderResult();
+}
 
 // ファイル選択処理の共通化（inputとドロップで同じ確認を行う）
 async function handleFileSelect(file, canvasId) {
@@ -13,10 +85,10 @@ async function handleFileSelect(file, canvasId) {
   const inputId = canvasId === "canvas1" ? "image1" : "image2";
   clearImage(inputId, canvasId);
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    window.UIController.showMessage("対応していない形式（PNG・JPEG・GIF・WebPに対応）", true);
+    window.UIController.showMessage("error.unsupportedType", true);
     return;
   }
-  const state = { loaded: false, hash: null };
+  const state = emptyImageState();
   imageStates[canvasId] = state;
   const img = new Image();
   const objectUrl = URL.createObjectURL(file);
@@ -33,10 +105,14 @@ async function handleFileSelect(file, canvasId) {
       const scale = Math.min(MAX_SIZE / width, MAX_SIZE / height);
       width = Math.floor(width * scale);
       height = Math.floor(height * scale);
-      const number = canvasId === "canvas1" ? 1 : 2;
-      document.getElementById(canvasId + "Notice").textContent =
-        `⚠ 画像${number}は4096pxを超えていたので縮小して読み込んだ（${img.width}×${img.height} → ${width}×${height}）。` +
-        "縮小した画像では厳密な比較にならない";
+      state.notice = {
+        key: "notice.downscaled",
+        params: {
+          number: canvasId === "canvas1" ? 1 : 2,
+          originalWidth: img.width, originalHeight: img.height, width, height
+        }
+      };
+      renderNotice(canvasId);
     }
 
     canvas.width = width;
@@ -54,21 +130,17 @@ async function handleFileSelect(file, canvasId) {
       state.hash = null;
     }
     if (imageStates[canvasId] !== state) return;
-    const hashLabel = document.getElementById(canvasId + "Hash");
-    hashLabel.textContent = state.hash
-      ? `SHA-256: ${state.hash.slice(0, 16)}…（先頭16桁）`
-      : "この環境ではSHA-256を計算できない";
-    hashLabel.title = state.hash || "";
-    document.getElementById(canvasId + "Copy").disabled = !state.hash;
     state.loaded = true;
-    window.UIController.showMessage("");
+    renderHashLabel(canvasId);
+    document.getElementById(canvasId + "Copy").disabled = !state.hash;
+    window.UIController.showMessage(null);
   };
 
   img.onerror = () => {
     URL.revokeObjectURL(objectUrl);
     if (imageStates[canvasId] !== state) return;
     objectUrls.delete(canvasId);
-    window.UIController.showMessage("画像の読み込みに失敗しました。", true);
+    window.UIController.showMessage("error.loadFailed", true);
   };
   img.src = objectUrl;
 }
@@ -78,7 +150,7 @@ function readCanvas(canvas) {
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
     return ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   } catch {
-    window.UIController.showMessage("この画像からは画素を読み出せない", true);
+    window.UIController.showMessage("error.pixelsUnreadable", true);
     return null;
   }
 }
@@ -102,14 +174,14 @@ async function compareImagesWithOverlap() {
   if (comparing) return;
   resetResult();
   if (!imageStates.canvas1.loaded || !imageStates.canvas2.loaded) {
-    window.UIController.showMessage("画像1と画像2を読み込むこと", true);
+    window.UIController.showMessage("error.needBothImages", true);
     return;
   }
   const canvas1 = document.getElementById("canvas1");
   const canvas2 = document.getElementById("canvas2");
   const choice = chooseLargeSmall(canvas1.width, canvas1.height, canvas2.width, canvas2.height);
   if (choice.error) {
-    window.UIController.showMessage("両画像のサイズ関係では重複領域の検出ができません。", true);
+    window.UIController.showMessage("error.noContainment", true);
     return;
   }
   setComparing(true);
@@ -130,7 +202,7 @@ async function compareImagesWithOverlap() {
     const levels = buildLevels(L, largeCanvas.width, largeCanvas.height, S, smallCanvas.width, smallCanvas.height);
     let candidates;
     for (let i = 0; i < levels.length; i++) {
-      window.UIController.showMessage(`位置合わせ中…（${i + 1} / ${levels.length} 段）`);
+      window.UIController.showMessage("status.aligning", false, { step: i + 1, total: levels.length });
       await yieldForPaint();
       candidates = i === 0 ? searchCoarsest(levels[i]) : refineLevel(levels[i], candidates);
     }
@@ -144,25 +216,25 @@ async function compareImagesWithOverlap() {
       a: cropRegion(large, largeCanvas.width, match.x, match.y, width, height),
       b: small, width, height
     };
-    document.getElementById("matchResult").textContent =
-      `画像${choice.large}の (${match.x}, ${match.y}) に画像${3 - choice.large}を重ねて比較` +
-      `（位置合わせのスコア ${match.score.toFixed(4)}）`;
-    if (matchConfidence(match.score) === "low") {
-      document.getElementById("matchWarning").textContent =
-        "⚠ 位置合わせのスコアが0.90に届いていない。画像の内容が大きく違うか、位置合わせが外れている。" +
-        "差分が全体に散らばっているなら、位置合わせの失敗を疑うこと";
-    }
+    matchState = {
+      params: {
+        large: choice.large, small: 3 - choice.large,
+        x: match.x, y: match.y, score: match.score.toFixed(4)
+      },
+      lowScore: matchConfidence(match.score) === "low"
+    };
+    renderMatch();
     renderComparison();
   } catch {
     resetResult();
-    window.UIController.showMessage("画像の比較を完了できませんでした。画像を読み込み直してください。", true);
+    window.UIController.showMessage("error.compareFailed", true);
   } finally {
     setComparing(false);
   }
 }
 
 function showUnmatchable() {
-  window.UIController.showMessage("位置合わせ不能: 小さいほうの画像が単色で、位置を決める手がかりがない", true);
+  window.UIController.showMessage("error.unmatchable", true);
 }
 
 // 同じサイズでも異サイズと同じRGBAの物差しを使う。
@@ -199,33 +271,34 @@ function renderComparison() {
     diffCtx.lineWidth = 2;
     diffCtx.strokeRect(box.minX - 3, box.minY - 3, box.width + 6, box.height + 6);
   }
-  document.getElementById("diffRate").textContent = describeResult({ ...result, tolerance });
-  diffCanvas.setAttribute("aria-label", `差分の画像。${formatCount(result.diffCount)}画素が赤で示されている`);
   const { hash: hash1 } = imageStates.canvas1, { hash: hash2 } = imageStates.canvas2;
-  let hashMessage = "この環境ではSHA-256を計算できない";
+  const hashMessage = { key: "hash.unavailable", extraKey: null };
   if (hash1 && hash2) {
-    hashMessage = hash1 === hash2 ? "ファイルは同一（SHA-256が一致）" : "ファイルは別物（SHA-256が不一致）";
+    hashMessage.key = hash1 === hash2 ? "hash.same" : "hash.different";
     if (hash1 !== hash2 && result.diffCount === 0) {
-      hashMessage += tolerance === 0
-        ? "\n画素は一致するが、ファイルは別物である。メタデータ（Exifなど）や圧縮の設定だけが違う可能性がある"
-        : "\n許容差の範囲では画素が一致するが、ファイルは別物である";
+      hashMessage.extraKey = tolerance === 0 ? "hash.metaOnly" : "hash.metaOnlyTolerance";
     }
   }
-  document.getElementById("hashResult").textContent = hashMessage;
+  resultState = {
+    parts: describeResult({ ...result, tolerance }),
+    diffCount: result.diffCount,
+    hash: hashMessage
+  };
+  renderResult();
   document.getElementById("saveDiff").disabled = false;
-  window.UIController.showMessage("");
+  window.UIController.showMessage(null);
 }
 
 function resetResult() {
   lastComparison = null;
-  for (const id of ["diffRate", "matchResult", "matchWarning", "hashResult"]) {
-    document.getElementById(id).textContent = "";
-  }
+  matchState = null;
+  resultState = null;
+  renderMatch();
+  renderResult();
   const canvas = document.getElementById("diffCanvas");
   canvas.width = 0;
   canvas.height = 0;
   canvas.hidden = true;
-  canvas.setAttribute("aria-label", "差分の画像。まだ比較していません");
   document.getElementById("saveDiff").disabled = true;
 }
 
@@ -239,7 +312,7 @@ function saveDiff() {
   if (!lastComparison || comparing) return;
   document.getElementById("diffCanvas").toBlob(blob => {
     if (!blob) {
-      window.UIController.showMessage("PNGを保存できませんでした。", true);
+      window.UIController.showMessage("error.saveFailed", true);
       return;
     }
     const date = new Date();
@@ -262,16 +335,16 @@ async function copyHash(canvasId) {
   if (!hash) return;
   try {
     await navigator.clipboard.writeText(hash);
-    window.UIController.showMessage("SHA-256をコピーしました。");
+    window.UIController.showMessage("notice.copied");
   } catch {
-    window.UIController.showMessage("コピーできませんでした。SHA-256の全桁はハッシュ表示のtitleから確認できます。", true);
+    window.UIController.showMessage("error.copyFailed", true);
   }
 }
 
 // 画像クリア処理
 function clearImage(inputId, canvasId) {
   if (comparing) return;
-  imageStates[canvasId] = { loaded: false, hash: null };
+  imageStates[canvasId] = emptyImageState();
   const input = document.getElementById(inputId);
   input.value = "";
   const canvas = document.getElementById(canvasId);
@@ -280,19 +353,18 @@ function clearImage(inputId, canvasId) {
   canvas.width = 0;
   canvas.height = 0;
   canvas.hidden = true;
-  document.getElementById(canvasId + "Hash").textContent = "";
-  document.getElementById(canvasId + "Hash").title = "";
-  document.getElementById(canvasId + "Notice").textContent = "";
+  renderHashLabel(canvasId);
+  renderNotice(canvasId);
   document.getElementById(canvasId + "Copy").disabled = true;
-  
+
   // メモリ解放
   if (objectUrls.has(canvasId)) {
     URL.revokeObjectURL(objectUrls.get(canvasId));
     objectUrls.delete(canvasId);
   }
-  
+
   resetResult();
-  window.UIController.showMessage("");
+  window.UIController.showMessage(null);
 }
 
 // メモリ解放用のクリーンアップ関数
@@ -310,6 +382,7 @@ window.ImageProcessor = {
   clearImage,
   cleanupObjectUrls,
   renderComparison,
+  renderTexts,
   saveDiff,
   copyHash
 };

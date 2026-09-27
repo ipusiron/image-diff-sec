@@ -236,12 +236,43 @@ button:hover {
   background-color: var(--compare-hover);
 }
 
-/* ダークモード切り替えボタン */
-.dark-mode-toggle {
+/* ヘッダーの操作ボタンは横並びの1組にまとめる。増えても位置を個別に決めなくてよい。 */
+.header-buttons {
   position: absolute;
-  right: 3rem;
+  right: 1rem;
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* 言語切り替えボタン。英語は日本語より長いので幅は文字数に任せる。 */
+.lang-toggle {
+  background-color: transparent;
+  border: 2px solid var(--header-border);
+  border-radius: 22px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 0.9rem;
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.lang-toggle:hover {
+  background-color: var(--header-hover);
+  border-color: var(--header-border-hover);
+}
+
+body.dark-mode .lang-toggle {
+  border-color: var(--header-border-hover);
+}
+
+/* ダークモード切り替えボタン */
+.dark-mode-toggle {
   background-color: transparent;
   border: 2px solid var(--header-border);
   border-radius: 50%;
@@ -337,10 +368,6 @@ body.dark-mode footer a:hover {
 
 /* ヘルプボタン */
 .help-button {
-  position: absolute;
-  right: 6rem;
-  top: 50%;
-  transform: translateY(-50%);
   background-color: transparent;
   border: 2px solid var(--header-border);
   border-radius: 50%;
@@ -362,7 +389,7 @@ body.dark-mode footer a:hover {
   border-color: var(--header-border-hover);
 }
 
-.help-button, .dark-mode-toggle {
+.help-button, .dark-mode-toggle, .lang-toggle {
   color: var(--header-text);
 }
 
@@ -538,21 +565,21 @@ input[type="range"]:focus-visible, a:focus-visible {
   vertical-align: middle;
 }
 
+/* 英語のボタンは日本語より長い。見出しに重なる前に、ボタンの組を見出しの下へ回す。 */
+@media (max-width: 940px) {
+  .header-buttons {
+    position: static;
+    transform: none;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+}
+
 @media (max-width: 600px) {
   main {
     padding: 1rem;
-  }
-
-  .header-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-
-  .help-button, .dark-mode-toggle {
-    position: static;
-    transform: none;
   }
 
   .upload-box {

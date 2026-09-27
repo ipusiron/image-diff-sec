@@ -26,8 +26,9 @@
 - **js/core/template-match.js**: `toLuma`・`chooseLargeSmall`・`downsample`・`coarsestFactor`・`isFlat`・`matchConfidence`
 - **js/core/template-match.jsの探索API**: `buildLevels`・`searchCoarsest`・`refineLevel`・`findBestMatch`
 - **js/core/hash.js**: `toHex`によるSHA-256の16進表記への変換
+- **js/i18n.js**: 日本語と英語の辞書、`t`・`apply`・`init`・`setLanguage`。他のスクリプトより先に読み込む
 - **js/image-processor.js**: Blob URLによる画像読み込み、状態管理、段ごとの探索、差分描画、ハッシュ・PNG保存
-- **js/ui-controller.js**: 入力とドロップの共通処理、テーマ、モーダル、メッセージ欄
+- **js/ui-controller.js**: 入力とドロップの共通処理、テーマ、モーダル、言語切り替え、メッセージ欄
 - **js/main.js**: DOMContentLoadedで初期化し、addEventListenerでイベントを登録
 - **test/**: 標準Nodeテスト。supportのPNGデコーダーは同梱サンプルの2形式だけに対応
 - **test-tools/**: 手動の試験画像生成ページ
@@ -69,6 +70,21 @@
 - alertやconsoleへの出力をアプリJSに入れない。エラーと進捗は画面内に表示
 - 画像・入力をinnerHTMLへ埋め込まない。メッセージはtextContentを使用
 
+### Internationalization
+
+- **画面の文言は`js/i18n.js`の辞書に置く。**`textContent`や`setAttribute`へ日本語を直接書かない
+- HTMLは`data-i18n`（本文）と`data-i18n-<属性>`（`aria-label`・`title`・`placeholder`・`alt`・`content`）で指す。
+  初期テキストは`ja`の値と一致させる。JSが動かないときはそれが出る
+- **JSが書き込むスロットと、状態で変わる属性に`data-i18n`を付けない。**`apply()`が無条件に上書きするため、
+  結果が出ている状態で言語を切り替えると巻き戻る。`#diffCanvas`の`aria-label`・`#diffRate`・`#hashResult`・
+  `#matchResult`・`#matchWarning`・`#canvasXHash`・`#canvasXNotice`・メッセージ欄が該当する
+- **表示中の文言は`{ key, params }`で保持し、`languagechange`で`renderTexts()`と`renderMessage()`が訳し直す。**
+  訳した文字列を状態や差し込み値に入れない。比較や位置合わせはやり直さない
+- coreの3ファイルは文言を持たない。`formatRate`と`describeResult`は`{ key, params }`だけを返す
+- 画像フォーマット名（PNG・JPEG・GIF・WebP）、SHA-256、NCC、RGBAは規格上の識別子なので訳さない
+- 言語の保存は`js/i18n.js`の`image-diff-sec-language`だけが行う。テーマの`darkMode`とは別に扱う
+- 文言を足したら`README.md`・`README.en.md`・`test/i18n.test.js`のキー数を合わせる
+
 ### Technical Limitations
 
 ブラウザー描画後のRGBAを比べるため、色空間変換・Exifの向き補正の影響があります。
@@ -106,6 +122,7 @@ samplesの6枚は変更しないでください。許容差0の差分は次の�
 切り出し6例・合成模様7例・RGBA比較8例・率の表示11例も固定期待値としてテストします。
 READMEの表・画像参照・全ファイルのツリー・HTMLコメント内のYAMLも検証対象です。
 README先頭のメタデータの構造と識別値は維持してください。
+日英の辞書は100キーで、キーの集合・差し込みの名前・HTMLのフォールバック文言も検証対象です。
 
 ## Context
 

@@ -18,7 +18,8 @@ test("G-11: READMEのサンプル表3件を実ファイルから再計算", () =
     const result = comparePixels(a.data, b.data, a.width, a.height);
     assert.equal(size, `${a.width}×${a.height}`);
     assert.equal(counts, `${formatCount(result.diffCount)} / ${formatCount(result.total)}`);
-    assert.equal(rate, formatRate(result.diffCount, result.total));
+    assert.deepEqual(formatRate(result.diffCount, result.total),
+      { key: "rate.value", params: { percent: rate.slice(0, -1) } });
     const { minX, maxX, minY, maxY } = result.bbox;
     assert.equal(box, `x ${minX}〜${maxX}, y ${minY}〜${maxY}`);
   }
