@@ -44,9 +44,11 @@ test("G-6: サンプル3対の差分実数・範囲・率・同一画像", () =>
     assert.equal(result.diffCount, count);
     assert.equal(result.total, total);
     assert.deepEqual(boxValues(result.bbox), box);
-    assert.ok(describeResult(result).startsWith(
-      `差分あり: ${count.toLocaleString("en-US")} / ${total.toLocaleString("en-US")} ピクセル（${rate}）`
-    ));
+    assert.deepEqual(describeResult(result).summary, {
+      key: "diff.found",
+      params: { count: count.toLocaleString("en-US"), total: total.toLocaleString("en-US") },
+      rate: { key: "rate.value", params: { percent: rate.slice(0, -1) } }
+    });
     assert.equal(comparePixels(a.data, a.data, a.width, a.height).diffCount, 0);
   }
 });

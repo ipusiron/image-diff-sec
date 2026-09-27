@@ -128,10 +128,27 @@ function setupHelpModal() {
   });
 }
 
-// エラーと進捗を画面内へ表示する。
-function showMessage(text, error = false) {
-  document.getElementById("statusMessage").textContent = error ? "" : text;
-  document.getElementById("errorMessage").textContent = error ? text : "";
+// 言語切り替えボタン。押すと即座に表示を切り替え、選択をブラウザーへ保存する。
+function setupLangToggle() {
+  document.getElementById("langToggle").addEventListener("click", () => {
+    window.I18n.setLanguage(window.I18n.language === "ja" ? "en" : "ja");
+  });
+}
+
+// エラーと進捗を画面内へ表示する。表示中の文言はキーで覚え、言語の切り替えで訳し直す。
+let currentMessage = null;
+
+function renderMessage() {
+  const text = currentMessage ? window.I18n.t(currentMessage.key, currentMessage.params) : "";
+  document.getElementById("statusMessage").textContent =
+    currentMessage && !currentMessage.error ? text : "";
+  document.getElementById("errorMessage").textContent =
+    currentMessage && currentMessage.error ? text : "";
+}
+
+function showMessage(key, error = false, params = {}) {
+  currentMessage = key ? { key, error, params } : null;
+  renderMessage();
 }
 
 // エクスポート（グローバルスコープに公開）
@@ -139,5 +156,7 @@ window.UIController = {
   setupDropZone,
   setupDarkMode,
   setupHelpModal,
-  showMessage
+  setupLangToggle,
+  showMessage,
+  renderMessage
 };
