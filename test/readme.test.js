@@ -96,3 +96,22 @@ test("G-11: 誤った説明を残さず、限界と検証対象を明記", () =>
   assert.match(readme, /file:\/\//);
   assert.ok(readme.trimEnd().endsWith("(https://akademeia.info/?page_id=42163)"));
 });
+
+test("ユースケースの「このツールならではの使い方」の数は実ファイルと計算部から再計算（日英）", () => {
+  const english = readFileSync(join(root, "README.en.md"), "utf8");
+  const load = (f) => decodePng(readFileSync(join(root, "samples", f)));
+  const qrL = load("qr_legit.png"), qrF = load("qr_fake.png");
+  const qr = comparePixels(qrL.data, qrF.data, qrL.width, qrL.height, 0);
+  assert.deepEqual([qr.diffCount, qr.total, formatRate(qr.diffCount, qr.total).params.percent], [16900, 108900, "15.52"]);
+  const d1 = load("doc_original.png"), d2 = load("doc_edited.png");
+  const doc = comparePixels(d1.data, d2.data, d1.width, d1.height, 0);
+  assert.deepEqual([doc.diffCount, doc.total, formatRate(doc.diffCount, doc.total).params.percent], [121, 80000, "0.15"]);
+  assert.deepEqual([doc.bbox.minX, doc.bbox.minY, doc.bbox.maxX, doc.bbox.maxY, doc.bbox.width, doc.bbox.height], [80, 42, 113, 60, 34, 19]);
+  const a = Uint8ClampedArray.from([100, 100, 100, 255]);
+  const b = Uint8ClampedArray.from([105, 100, 100, 255]);
+  assert.deepEqual([comparePixels(a, b, 1, 1, 0).diffCount, comparePixels(a, b, 1, 1, 4).diffCount, comparePixels(a, b, 1, 1, 5).diffCount], [1, 1, 0]);
+  for (const md of [readme, english]) {
+    assert.ok(md.includes("15.52%") && md.includes("0.15%"));
+    assert.ok(md.includes("16,900") && md.includes("108,900") && md.includes("34") && md.includes("19"));
+  }
+});

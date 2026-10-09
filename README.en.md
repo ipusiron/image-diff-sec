@@ -54,6 +54,12 @@ The screenshots are taken from the running tool with the Japanese interface.
 
 ## 🔐 Intended use cases
 
+Ways of using this tool in particular
+
+- Showing a difference in content with numbers even when the look is the same (tamper-detection and visualization classes): comparing two indistinguishable QR codes (`qr_legit.png` and `qr_fake.png`, 330x330) pixel by pixel reports 16,900 of 108,900 pixels, 15.52% of the whole, as different. You can show, with a rate and red highlighting, a difference in internal structure that the eye cannot catch
+- Boxing where a small edit is (document verification and localized diff): for `doc_original.png` and `doc_edited.png` (400x200), where only part of the document was changed, only 121 of 80,000 pixels differ, 0.15%. Even so, the changed area fits in a 34x19 box from (80,42) to (113,60). You can confirm at once how small the difference is and the box around the change
+- Ignoring noise with a tolerance (image-processing and threshold classes): pixel comparison has a tolerance, and pixels whose color difference is within the tolerance are not counted as different. When one channel of one pixel differs by 5, a tolerance of 0 or 4 counts 1 pixel as a difference, but a tolerance of 5 counts 0. You can confirm the idea of counting only meaningful changes while ignoring the slight noise of lossy compression
+
 | Security application | Description |
 |---|---|
 | Checking a tampered QR code | Compare two QR codes that look the same but carry different data |
