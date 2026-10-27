@@ -48,32 +48,14 @@ function setupDropZone(dropZoneId, inputId, canvasId) {
 // ダークモード切り替え機能
 function setupDarkMode() {
   const darkModeToggle = document.getElementById('darkModeToggle');
-  const body = document.body;
-  
-  // 保存されている設定を読み込む
-  let savedDarkMode = null;
-  try {
-    const stored = localStorage.getItem('darkMode');
-    if (stored === 'true' || stored === 'false') savedDarkMode = stored;
-  } catch {
-    // 保存領域が使えなくても、画面上での切り替えは続ける。
-  }
-  if (savedDarkMode === 'true') {
-    body.classList.add('dark-mode');
-  }
-  
-  // システムのダークモード設定を検出（初回のみ）
-  if (savedDarkMode === null) {
-    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (prefersDarkMode) {
-      body.classList.add('dark-mode');
-    }
-  }
-  
+  // テーマのクラスは <html> に付ける。初回の判定は <head> の js/theme-init.js が最初の描画の前に行う。
+  // アイコンは CSS がクラスに合わせて切り替えるので、ここではクリックの処理だけを持つ。
+  const root = document.documentElement;
+
   // 切り替えボタンのクリックイベント
   darkModeToggle.addEventListener('click', () => {
-    body.classList.toggle('dark-mode');
-    const isDarkMode = body.classList.contains('dark-mode');
+    root.classList.toggle('dark-mode');
+    const isDarkMode = root.classList.contains('dark-mode');
     try {
       localStorage.setItem('darkMode', isDarkMode.toString());
     } catch {

@@ -366,6 +366,7 @@ image-diff-sec/                     # 2枚の画像を画素単位で比べる�
 │   ├── i18n.js                     # 日本語と英語の文言と切り替えの仕組み
 │   ├── image-processor.js          # 画像の読み込み・比較・差分の描画
 │   ├── main.js                     # 起動時の組み立て
+│   ├── theme-init.js               # 最初の描画の前にテーマを決める（<head>で読み込む）
 │   └── ui-controller.js            # ドロップ・テーマ・モーダル・メッセージ欄
 ├── LICENSE                         # 本ツールのMITライセンス
 ├── package.json                    # 依存なしのnpm test定義
@@ -391,7 +392,8 @@ image-diff-sec/                     # 2枚の画像を画素単位で比べる�
 │   ├── support/                    # テストだけが使う補助
 │   │   ├── patterns.js             # 位置合わせの試験に使う合成模様
 │   │   └── png.js                  # テスト用の最小PNGデコーダー
-│   └── template-match.test.js      # 位置合わせの検証
+│   ├── template-match.test.js      # 位置合わせの検証
+│   └── theme-init.test.js          # テーマの初期判定と読み込み位置の検証
 ├── test-tools/                     # 手動の確認に使うテスト画像の生成ページ
 │   ├── qr-test-generator.html      # QRコードのテスト画像を作成
 │   └── simple-test-generator.html  # 単純な模様のテスト画像を作成
