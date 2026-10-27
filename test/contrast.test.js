@@ -19,7 +19,7 @@ const pairs = [
   ["result-text", "panel-bg"], ["link", "modal-bg"], ["modal-heading", "modal-bg"],
   ["modal-close", "modal-header"], ["modal-close-hover", "modal-header"]
 ];
-for (const selector of [":root", "body.dark-mode"]) {
+for (const selector of [":root", "html.dark-mode body"]) {
   test("F-2〜F-4: " + selector + "の文字コントラスト", () => {
     const body = css.slice(css.indexOf(selector)).match(/\{([^}]+)\}/)[1];
     const variables = Object.fromEntries([...body.matchAll(/--([\w-]+):\s*(#[\da-f]{6});/gi)].map(m => [m[1], m[2]]));

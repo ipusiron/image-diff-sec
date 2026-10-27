@@ -21,14 +21,15 @@
 ## Architecture
 
 - **index.html**: ファイル選択・許容差・比較結果・PNG保存・ヘルプのマークアップ
-- **style.css**: `:root`と`body.dark-mode`の配色、600px以下のレイアウト
+- **style.css**: `:root`と`html.dark-mode body`の配色、600px以下のレイアウト（ダークのクラスは`<html>`に付ける）
 - **js/core/pixel-diff.js**: `comparePixels`・`cropRegion`・`formatRate`・`formatCount`・`describeResult`
 - **js/core/template-match.js**: `toLuma`・`chooseLargeSmall`・`downsample`・`coarsestFactor`・`isFlat`・`matchConfidence`
 - **js/core/template-match.jsの探索API**: `buildLevels`・`searchCoarsest`・`refineLevel`・`findBestMatch`
 - **js/core/hash.js**: `toHex`によるSHA-256の16進表記への変換
 - **js/i18n.js**: 日本語と英語の辞書、`t`・`apply`・`init`・`setLanguage`。他のスクリプトより先に読み込む
 - **js/image-processor.js**: Blob URLによる画像読み込み、状態管理、段ごとの探索、差分描画、ハッシュ・PNG保存
-- **js/ui-controller.js**: 入力とドロップの共通処理、テーマ、モーダル、言語切り替え、メッセージ欄
+- **js/theme-init.js**: `<head>`のstylesheetの直後で同期読み込みし、最初の描画の前に`<html>`へ`dark-mode`を付ける（保存値`darkMode`、なければOS設定）
+- **js/ui-controller.js**: 入力とドロップの共通処理、テーマの切り替えと保存、モーダル、言語切り替え、メッセージ欄
 - **js/main.js**: DOMContentLoadedで初期化し、addEventListenerでイベントを登録
 - **test/**: 標準Nodeテスト。supportのPNGデコーダーは同梱サンプルの2形式だけに対応
 - **test-tools/**: 手動の試験画像生成ページ

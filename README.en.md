@@ -342,6 +342,7 @@ image-diff-sec/                     # A tampering detector that compares two ima
 │   ├── i18n.js                     # The Japanese and English strings and the language switch
 │   ├── image-processor.js          # Loading, comparing and drawing the difference
 │   ├── main.js                     # Wiring at startup
+│   ├── theme-init.js               # Sets the theme before the first paint (loaded in <head>)
 │   └── ui-controller.js            # Drop zones, theme, modal, language button, message area
 ├── LICENSE                         # The MIT license of this tool
 ├── package.json                    # The dependency-free npm test definition
@@ -367,7 +368,8 @@ image-diff-sec/                     # A tampering detector that compares two ima
 │   ├── support/                    # Helpers used only by the tests
 │   │   ├── patterns.js             # Synthetic patterns for the alignment tests
 │   │   └── png.js                  # A minimal PNG decoder for the tests
-│   └── template-match.test.js      # The alignment
+│   ├── template-match.test.js      # The alignment
+│   └── theme-init.test.js          # The initial theme choice and where it loads
 ├── test-tools/                     # Generator pages for manual checks
 │   ├── qr-test-generator.html      # Builds QR code test images
 │   └── simple-test-generator.html  # Builds simple pattern test images
